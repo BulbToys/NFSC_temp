@@ -382,8 +382,8 @@ bool MainWindow::Draw()
 	if (ImGui::BulbToys_Menu("[Main]"))
 	{
 		// We want all windows to disable this button once it's been clicked
-		// NFSC: force true for disable_detach and figure out why the fuck it crashes random shit (PeekMessage, D3DQuery::GetData...)
-		static bool disable_detach = true;
+		// NFSC: Figure out why the fuck it crashes random shit (PeekMessage, D3DQuery::GetData...)
+		static bool disable_detach = false;
 		if (disable_detach)
 		{
 			ImGui::BeginDisabled();

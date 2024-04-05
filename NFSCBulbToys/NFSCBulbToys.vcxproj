@@ -60,8 +60,8 @@
     <ClCompile Include="ext\base\minhook\hook.c" />
     <ClCompile Include="ext\base\minhook\trampoline.c" />
     <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\modules\fast_boot_flow.cpp" />
     <ClCompile Include="src\modules\state_managers.cpp" />
-    <ClCompile Include="src\modules\test_module.cpp" />
     <ClCompile Include="src\nfsc.cpp" />
   </ItemGroup>
   <ItemGroup>

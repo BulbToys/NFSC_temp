@@ -53,10 +53,10 @@
     <ClCompile Include="ext\base\bulbtoys\my_imgui.cpp" />
     <ClCompile Include="ext\base\minhook\hde\hde32.c" />
     <ClCompile Include="ext\base\minhook\hde\hde64.c" />
-    <ClCompile Include="src\modules\test_module.cpp" />
     <ClCompile Include="ext\base\bulbtoys\settings.cpp" />
     <ClCompile Include="src\modules\state_managers.cpp" />
     <ClCompile Include="src\nfsc.cpp" />
+    <ClCompile Include="src\modules\fast_boot_flow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
