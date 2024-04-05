@@ -153,12 +153,23 @@ GUI::GUI(IDirect3DDevice9* device, HWND window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX9_Init(device);
 
+	// TODO: vtable patches do not work for these?
 	Hooks::Create(ID3D9_ENDSCENE(), &ID3DDevice9_EndScene_, &ID3DDevice9_EndScene);
 	Hooks::Create(ID3D9_RESET(), &ID3DDevice9_Reset_, &ID3DDevice9_Reset);
+
+	// NFSC:
+	// - Patch out IsWindowed check for Set/ShowCursor(0) in eInitEngine
+	// - Patch out looping ShowCursor(0) in Window_HandleMessages
+	PatchNOP(0x730A8D, 8);
+	PatchNOP(0x711EF2, 7);
 }
 
 GUI::~GUI()
 {
+	// NFSC: Undo patches
+	Unpatch(0x711EF2);
+	Unpatch(0x730A8D);
+
 	Hooks::Destroy(ID3D9_RESET());
 	Hooks::Destroy(ID3D9_ENDSCENE());
 
@@ -166,6 +177,8 @@ GUI::~GUI()
 	ImGui_ImplWin32_Shutdown();
 
 	ImGui::DestroyContext();
+
+	IWindow::DestroyAll();
 }
 
 void GUI::Render()
@@ -214,29 +227,34 @@ void GUI::Render()
 
 HRESULT __stdcall GUI::ID3DDevice9_EndScene_(IDirect3DDevice9* device)
 {
-	const auto result = GUI::ID3DDevice9_EndScene(device);
+	auto result = GUI::ID3DDevice9_EndScene(device);
 
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	// Push all windows from the queue into the list
-	auto& queue = IWindow::Queue();
-	auto iter = queue.begin();
-	while (iter != queue.end())
+	// TODO: why does this fucking hook still exist even after the GUI has been destroyed ??????????
+	auto gui = GUI::Get();
+	if (gui)
 	{
-		auto window = *iter;
+		ImGui_ImplDX9_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
 
-		queue.erase(iter);
-		IWindow::List().push_back(window);
+		// Push all windows from the queue into the list
+		auto& queue = IWindow::Queue();
+		auto iter = queue.begin();
+		while (iter != queue.end())
+		{
+			auto window = *iter;
+
+			queue.erase(iter);
+			IWindow::List().push_back(window);
+		}
+
+		// TODO: frame count fixes?
+		gui->Render();
+
+		ImGui::EndFrame();
+		ImGui::Render();
+		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 	}
-
-	// TODO: frame count fixes?
-	GUI::Get()->Render();
-
-	ImGui::EndFrame();
-	ImGui::Render();
-	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
 	return result;
 }
@@ -253,8 +271,19 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
 
 LRESULT CALLBACK GUI::WndProc(WNDPROC original_wndproc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// NFSC: Show or hide the cursor depending on whether we have any windows open
+	bool windows_open = IWindow::List().size() > 0;
+	if (windows_open)
+	{
+		while (ShowCursor(true) < 0);
+	}
+	else
+	{
+		while (ShowCursor(false) >= 0);
+	}
+
 	// Only process input if we have any windows open
-	if (IWindow::List().size() > 0 && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+	if (windows_open && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 	{
 		// TODO: broken in some games? only other replacement is hooking 10 different winapi functions though
 		// TODO: do we need to check what we're capturing (uMsg/wParam) alongside io.WantCaptureX?
@@ -353,7 +382,8 @@ bool MainWindow::Draw()
 	if (ImGui::BulbToys_Menu("[Main]"))
 	{
 		// We want all windows to disable this button once it's been clicked
-		static bool disable_detach = false;
+		// NFSC: force true for disable_detach and figure out why the fuck it crashes random shit (PeekMessage, D3DQuery::GetData...)
+		static bool disable_detach = true;
 		if (disable_detach)
 		{
 			ImGui::BeginDisabled();
