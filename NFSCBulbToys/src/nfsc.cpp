@@ -52,3 +52,40 @@ const char* NFSC::FEStateManager::GetName()
 		default: return "(INVALID)";
 	}
 }
+
+bool NFSC::BulbToys_GetMyVehicle(uintptr_t* my_vehicle, uintptr_t* my_simable)
+{
+	auto gfs = NFSC::BulbToys_GetGameFlowState();
+	if (gfs == GFS::RACING || gfs == GFS::LOADING_REGION || gfs == GFS::LOADING_TRACK)
+	{
+		for (int i = 0; i < (int)VehicleList[VLType::PLAYERS]->size; i++)
+		{
+			uintptr_t vehicle = VehicleList[VLType::PLAYERS]->begin[i];
+
+			if (vehicle)
+			{
+				uintptr_t simable = PVehicle_GetSimable(vehicle);
+
+				if (simable)
+				{
+					uintptr_t player = PhysicsObject_GetPlayer(simable);
+
+					if (player && BulbToys_IsPlayerLocal(player))
+					{
+						if (my_vehicle)
+						{
+							*my_vehicle = vehicle;
+						}
+						if (my_simable)
+						{
+							*my_simable = simable;
+						}
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
