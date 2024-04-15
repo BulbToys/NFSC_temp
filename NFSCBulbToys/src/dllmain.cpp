@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-#include "..\ext\base\bulbtoys.h"
+#include "..\core\bulbtoys.h"
 
 BOOL APIENTRY DllMain(HMODULE instance, DWORD reason, LPVOID)
 {

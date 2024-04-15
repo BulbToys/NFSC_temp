@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "../ext/base/bulbtoys/utils.h"
+#include "../core/bulbtoys/utils.h"
 
 namespace NFSC
 {
