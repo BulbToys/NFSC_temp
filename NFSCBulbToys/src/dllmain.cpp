@@ -1,6 +1,7 @@
 #include <Windows.h>
 
 #include "..\core\bulbtoys.h"
+#include "nfsc.h"
 
 BOOL APIENTRY DllMain(HMODULE instance, DWORD reason, LPVOID)
 {
@@ -11,11 +12,19 @@ BOOL APIENTRY DllMain(HMODULE instance, DWORD reason, LPVOID)
 		{
 			BulbToys::SetupParams params;
 			params.instance = instance;
-			params.device = Read<IDirect3DDevice9*>(0xAB0ABC);
 			params.GetDevice = +[](){
 				return Read<IDirect3DDevice9*>(0xAB0ABC);
 			};
-			params.settings_file = "NFSCBulbToys.ini";
+
+			// NOTE: NFSCO will not support ASI plugins
+			if (NFSC::BulbToys_IsNFSCO())
+			{
+				params.settings_file = "NFSCO_BulbToys.ini";
+			}
+			else
+			{
+				params.settings_file = "NFSC_BulbToys.ini";
+			}
 
 			BulbToys::Setup(params);
 		}

@@ -351,5 +351,7 @@ namespace NFSC
 
 	bool BulbToys_GetMyVehicle(uintptr_t* my_vehicle, uintptr_t* my_simable);
 
+	inline bool BulbToys_IsNFSCO() { return Read<uint32_t>(0x692539) == 28; }
+
 	inline bool BulbToys_IsPlayerLocal(uintptr_t player) { return Read<uintptr_t>(player) == 0x9EC8C0; /* RecordablePlayer::`vftable'{for `IPlayer'} */ }
 }
