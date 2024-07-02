@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <unordered_map>
 
+#include "git.h"
+
 #define PROJECT_NAME "BulbToys"
 
 #define DIE() *((int*)0xDEAD) = 0
@@ -158,3 +160,6 @@ void PatchNOP(uintptr_t address, int count = 1);
 void PatchJMP(uintptr_t address, void* asm_func, size_t patch_len = 5);
 
 void Unpatch(uintptr_t address, bool force_unpatch = true);
+
+int WideStringToString(wchar_t* wide_str, size_t wide_str_len, char* str = nullptr, size_t str_len = 0);
+int StringToWideString(char* str, size_t str_len, wchar_t* wide_str = nullptr, size_t wide_str_len = 0);

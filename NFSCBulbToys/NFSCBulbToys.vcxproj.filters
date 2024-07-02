@@ -31,6 +31,7 @@
     <ClInclude Include="core\minhook\trampoline.h" />
     <ClInclude Include="core\mini\ini.h" />
     <ClInclude Include="core\bulbtoys.h" />
+    <ClInclude Include="core\bulbtoys\git.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp" />
