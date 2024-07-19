@@ -1,3 +1,4 @@
 build/*
 .vs
 NFSCBulbToys/update_rev_count.bat
+*.user
