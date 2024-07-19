@@ -158,8 +158,7 @@ GUI::GUI(IDirect3DDevice9* device, HWND window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX9_Init(device);
 
-	CREATE_VTABLE_PATCH(PtrVirtual<42>(reinterpret_cast<uintptr_t>(device)), ID3DDevice9_EndScene);
-	CREATE_VTABLE_PATCH(PtrVirtual<16>(reinterpret_cast<uintptr_t>(device)), ID3DDevice9_Reset);
+	GUI::PatchVTables(PatchMode::Patch);
 
 	// NFSC:
 	// - Patch out IsWindowed check for Set/ShowCursor(0) in eInitEngine
@@ -174,8 +173,7 @@ GUI::~GUI()
 	Unpatch(0x711EF2);
 	Unpatch(0x730A8D);
 
-	Unpatch(PtrVirtual<16>(reinterpret_cast<uintptr_t>(device)));
-	Unpatch(PtrVirtual<42>(reinterpret_cast<uintptr_t>(device)));
+	GUI::PatchVTables(PatchMode::Unpatch);
 
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -229,6 +227,25 @@ void GUI::Render()
 	overlay.Render();
 }
 
+void GUI::PatchVTables(PatchMode pm)
+{
+	if (pm == PatchMode::Unpatch || pm == PatchMode::Repatch)
+	{
+		Unpatch(PtrVirtual<60>(reinterpret_cast<uintptr_t>(this->device)));
+
+		Unpatch(PtrVirtual<16>(reinterpret_cast<uintptr_t>(this->device)));
+		Unpatch(PtrVirtual<42>(reinterpret_cast<uintptr_t>(this->device)));
+	}
+
+	if (pm == PatchMode::Patch || pm == PatchMode::Repatch)
+	{
+		CREATE_VTABLE_PATCH(PtrVirtual<42>(reinterpret_cast<uintptr_t>(this->device)), ID3DDevice9_EndScene);
+		CREATE_VTABLE_PATCH(PtrVirtual<16>(reinterpret_cast<uintptr_t>(this->device)), ID3DDevice9_Reset);
+
+		CREATE_VTABLE_PATCH(PtrVirtual<60>(reinterpret_cast<uintptr_t>(this->device)), ID3DDevice9_BeginStateBlock);
+	}
+}
+
 HRESULT __stdcall GUI::ID3DDevice9_EndScene_(IDirect3DDevice9* device)
 {
 	auto result = GUI::ID3DDevice9_EndScene(device);
@@ -270,6 +287,23 @@ HRESULT __stdcall GUI::ID3DDevice9_Reset_(IDirect3DDevice9* device, D3DPRESENT_P
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	const auto result = GUI::ID3DDevice9_Reset(device, params);
 	ImGui_ImplDX9_CreateDeviceObjects();
+	return result;
+}
+
+HRESULT __stdcall GUI::ID3DDevice9_BeginStateBlock_(IDirect3DDevice9* device)
+{
+	auto result = GUI::ID3DDevice9_BeginStateBlock(device);
+
+	auto this_ = GUI::instance;
+	if (!this_)
+	{
+		Error("GUI::ID3DDevice9_BeginStateBlock_ called but no GUI instance.");
+		return result;// DIE();
+	}
+
+	// ID3DDevice9::BeginStateBlock resets the vtable ?????????? (thanks ficool2 :3)
+	this_->PatchVTables(PatchMode::Repatch);
+
 	return result;
 }
 
