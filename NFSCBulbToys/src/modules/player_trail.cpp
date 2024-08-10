@@ -1,7 +1,7 @@
 #include "../../core/bulbtoys.h"
 #include "../nfsc.h"
 
-namespace trail_test
+namespace player_trail
 {
 	class TrailPanel : public IPanel
 	{
@@ -19,7 +19,7 @@ namespace trail_test
 				initialized = true;
 			}
 
-			if (ImGui::BulbToys_Menu("Trail Test"))
+			if (ImGui::BulbToys_Menu("Player Trail"))
 			{
 				static bool enabled = false;
 				if (ImGui::Checkbox("Enabled", &enabled))
@@ -47,23 +47,11 @@ namespace trail_test
 						}
 					}
 				}
-
-				ImGui::BulbToys_AddyLabel(carpathfinder.mCollection, "mCollection = ");
-				ImGui::BulbToys_AddyLabel(carpathfinder.mLayoutPtr, "mLayoutPtr = ");
-				ImGui::Text("mMsgPort = %u", carpathfinder.mMsgPort);
-				ImGui::Text("mFlags = %u", carpathfinder.mFlags);
 			}
 
 			return true;
 		}
 	};
-
-	HOOK(VIRTUAL, void, __fastcall, AIVehicleHuman_Update, uintptr_t ai_vehicle_human, uintptr_t edx, float dt);
-
-	void Init()
-	{
-		CREATE_VTABLE_PATCH(0x9C5288, AIVehicleHuman_Update);
-	}
 
 	IPanel* Panel(Module::DrawType dt)
 	{
@@ -73,6 +61,13 @@ namespace trail_test
 		}
 
 		return nullptr;
+	}
+
+	HOOK(VIRTUAL, void, __fastcall, AIVehicleHuman_Update, uintptr_t ai_vehicle_human, uintptr_t edx, float dt);
+
+	void Init()
+	{
+		CREATE_VTABLE_PATCH(0x9C5288, AIVehicleHuman_Update);
 	}
 
 	void End()
@@ -86,7 +81,7 @@ namespace trail_test
 
 		if (TrailPanel::effect[0])
 		{
-			NFSC::Vector3 vec2 { .0f, 1.0f, .0f };
+			NFSC::Vector3 vecB { .0f, 1.0f, .0f };
 
 			auto i_vehicle_ai = ai_vehicle_human + 0x44;
 			auto vehicle = NFSC::AIVehicle_GetVehicle(i_vehicle_ai);
@@ -96,21 +91,21 @@ namespace trail_test
 			NFSC::Vector3 dim;
 			NFSC::RigidBody_GetDimension(rigid_body, &dim);
 
-			NFSC::Vector3 vec1;
+			NFSC::Vector3 vecA;
 
-			vec1.x = dim.x * -0.5f;
-			vec1.y = dim.y * -0.5f;
-			vec1.z = dim.z * 0.5f;
+			vecA.x = dim.x * -0.5f;
+			vecA.y = dim.y * -0.5f;
+			vecA.z = dim.z * 0.5f;
 			reinterpret_cast<void(__thiscall*)(uintptr_t, uintptr_t, NFSC::Vector3&, NFSC::Vector3&, uintptr_t, bool, uintptr_t)>(0x767A50)
-				(TrailPanel::effect[0], TrailPanel::carpathfinder.mCollection, vec1, vec2, 0, true, 0);
+				(TrailPanel::effect[0], TrailPanel::carpathfinder.mCollection, vecA, vecB, 0, true, 0);
 
-			vec1.x = dim.x * 0.5f;
-			vec1.y = dim.y * -0.5f;
-			vec1.z = dim.z * 0.5f;
+			vecA.x = dim.x * 0.5f;
+			vecA.y = dim.y * -0.5f;
+			vecA.z = dim.z * 0.5f;
 			reinterpret_cast<void(__thiscall*)(uintptr_t, uintptr_t, NFSC::Vector3&, NFSC::Vector3&, uintptr_t, bool, uintptr_t)>(0x767A50)
-				(TrailPanel::effect[1], TrailPanel::carpathfinder.mCollection, vec1, vec2, 0, true, 0);
+				(TrailPanel::effect[1], TrailPanel::carpathfinder.mCollection, vecA, vecB, 0, true, 0);
 		}
 	}
 }
 
-MODULE(trail_test);
+MODULE(player_trail);

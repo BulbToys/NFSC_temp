@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "../core/bulbtoys/utils.h"
+#include "../core/bulbtoys/my_imgui.h"
 
 namespace NFSC
 {
@@ -16,7 +17,77 @@ namespace NFSC
 			uint32_t mMsgPort = 0;
 			uint32_t mFlags = 0;
 		};
+	}
 
+	/* ===== E N U M S ===== */
+
+	namespace Chyron
+	{
+		enum
+		{
+			CONNECT     = 0x1,
+			DISCONNECT  = 0x2,
+			MAIL        = 0x4,
+			RACE_INVITE = 0x8,
+			SOUND       = 0x10,
+			NO_SOUND    = 0x20,
+			REWARD      = 0x40,
+		};
+	}
+	inline const char* chyron_icons[] = { "Connect", "Disconnect", "Mail", "Race Invite", "Sound", "No Sound", "Reward" };
+
+	namespace DriverClass
+	{
+		enum
+		{
+			HUMAN        = 0x0,
+			TRAFFIC      = 0x1,
+			COP          = 0x2,
+			RACER        = 0x3,
+			NONE         = 0x4,
+			NIS          = 0x5,
+			REMOTE       = 0x6,
+			REMOTE_RACER = 0x7,
+			GHOST        = 0x8,
+			HUB          = 0x9,
+			MAX          = 0xA,
+		};
+	}
+	inline const char* driver_classes[] = { "traffic", "cop", "racer", "none", "nis", "remote", "remote_racer", "ghost", "hub" };
+
+	namespace FESM
+	{
+		namespace PhotoMode
+		{
+			enum
+			{
+				// This state is used on Photo Mode when we're entering the Customization state manager, so it can later give us our FNG back
+				// This is exactly what the Crew Management state manager uses to push FeCrewCar.fng again once customization has finished
+				GIMME_MY_QR_FNG = 100,
+			};
+		}
+
+		namespace WorldMap
+		{
+			enum
+			{
+				// Normal states
+				NORMAL       = 3,
+				TERRITORIES  = 4,
+				QUICK_LIST   = 5,
+				ENGAGE_EVENT = 6,
+
+				// Dialog states
+				RACE_EVENT = 13,
+				CAR_LOT    = 16,
+				SAFEHOUSE  = 17,
+
+				// Click TP states
+				CLICK_TP      = 100,
+				CLICK_TP_JUMP = 101,
+				CLICK_TP_GPS  = 102,
+			};
+		}
 	}
 
 	// GameFlowState
@@ -24,16 +95,16 @@ namespace NFSC
 	{
 		enum
 		{
-			NONE = 0x0,
-			LOADING_FRONTEND = 0x1,
+			NONE               = 0x0,
+			LOADING_FRONTEND   = 0x1,
 			UNLOADING_FRONTEND = 0x2,
-			IN_FRONTEND = 0x3,
-			LOADING_REGION = 0x4,
-			LOADING_TRACK = 0x5,
-			RACING = 0x6,
-			UNLOADING_TRACK = 0x7,
-			UNLOADING_REGION = 0x8,
-			EXIT_DEMO_DISC = 0x9,
+			IN_FRONTEND        = 0x3,
+			LOADING_REGION     = 0x4,
+			LOADING_TRACK      = 0x5,
+			RACING             = 0x6,
+			UNLOADING_TRACK    = 0x7,
+			UNLOADING_REGION   = 0x8,
+			EXIT_DEMO_DISC     = 0x9,
 		};
 	}
 
@@ -42,22 +113,23 @@ namespace NFSC
 	{
 		enum
 		{
-			ALL = 0x0,
-			PLAYERS = 0x1,
-			AI = 0x2,
-			AI_RACERS = 0x3,
-			AI_COPS = 0x4,
-			AI_TRAFFIC = 0x5,
-			RACERS = 0x6,
-			REMOTE = 0x7,
-			INACTIVE = 0x8,
-			TRAILERS = 0x9,
+			ALL           = 0x0,
+			PLAYERS       = 0x1,
+			AI            = 0x2,
+			AI_RACERS     = 0x3,
+			AI_COPS       = 0x4,
+			AI_TRAFFIC    = 0x5,
+			RACERS        = 0x6,
+			REMOTE        = 0x7,
+			INACTIVE      = 0x8,
+			TRAILERS      = 0x9,
 			ACTIVE_RACERS = 0xA,
-			GHOST = 0xB,
-			MAX = 0xC,
+			GHOST         = 0xB,
+			MAX           = 0xC,
 		};
 	}
-	inline const char* vehicle_lists[] = { "All", "Players", "AI", "AI Racers", "AI Cops", "AI Traffic", "Racers", "Remote", "Inactive", "Trailers", "Active Racers", "Ghosts" };
+	inline const char* vehicle_lists[] = 
+		{ "All", "Players", "AI", "AI Racers", "AI Cops", "AI Traffic", "Racers", "Remote", "Inactive", "Trailers", "Active Racers", "Ghosts" };
 
 	/* ===== S T R U C T S ===== */
 
@@ -166,7 +238,13 @@ namespace NFSC
 	/* ===== C O N S T A N T S ===== */
 
 	// Globals
-	constexpr uintptr_t FEManager = 0xA97A7C;
+	inline NFSC::FEStateManager* BulbToys_GetFEManager() { return Read<NFSC::FEStateManager*>(0xA97A7C); }
+
+	inline int BulbToys_GetGameFlowState() { return Read<int>(0xA99BBC); }
+
+	inline uintptr_t BulbToys_GetGManagerBase() { return Read<uintptr_t>(0xA98294); }
+
+	inline uintptr_t BulbToys_GetWorldMap() { return Read<uintptr_t>(0xA977F0); }
 
 	// ListableSets
 	inline ListableSet<uintptr_t>* VehicleList[VLType::MAX] = {
@@ -183,6 +261,133 @@ namespace NFSC
 		reinterpret_cast<ListableSet<uintptr_t>*>(0xA9F158 + 0x88 * 0xA),
 		reinterpret_cast<ListableSet<uintptr_t>*>(0xA9F158 + 0x88 * 0xB)
 	};
+
+	/* ===== H A S H I N G ===== */
+
+	// "BIN Memory" Hash, FEHash
+	constexpr uint32_t bStringHash(const char* string)
+	{
+		uint32_t result = -1;
+
+		while (*string)
+		{
+			result = *string + 33 * result;
+			string++;
+		}
+
+		return result;
+	}
+
+	/*
+	#define HASH(str) { bStringHash(str), str }
+	inline std::unordered_map<uint32_t, const char*> bin_hashes
+	{
+		HASH("example"),
+	};
+	#undef HASH
+	*/
+
+	// "VLT Memory" Hash
+	constexpr uint32_t hash32(const char* string, unsigned int seed, unsigned int length)
+	{
+		unsigned int v3;
+		unsigned int v4;
+		unsigned int v5;
+		unsigned int v6;
+		unsigned int v8;
+		unsigned int v9;
+		unsigned int v10;
+		unsigned int v11;
+		unsigned int v12;
+		unsigned int v13;
+		unsigned int v14;
+		unsigned int v15;
+		unsigned int v16;
+		unsigned int v17;
+		unsigned int v18;
+		unsigned int v19;
+		unsigned int v20;
+		unsigned int v21;
+		unsigned int v22;
+		unsigned int v23;
+		unsigned int v25;
+
+		v3 = length;
+		v4 = 0x9E3779B9;
+		v5 = length;
+		v6 = 0x9E3779B9;
+		if (length >= 0xC)
+		{
+			v25 = length / 0xC;
+			do
+			{
+				v8 = v4 + *(string + 4) + ((*(string + 5) + ((*(string + 6) + (*(string + 7) << 8)) << 8)) << 8);
+				v9 = seed + *(string + 8) + ((*(string + 9) + ((*(string + 10) + (*(string + 11) << 8)) << 8)) << 8);
+				v10 = (v9 >> 13) ^ (v6 + *string
+					+ ((*(string + 1) + ((*(string + 2) + (*(string + 3) << 8)) << 8)) << 8)
+					- v9
+					- v8);
+				v11 = (v10 << 8) ^ (v8 - v9 - v10);
+				v12 = (v11 >> 13) ^ (v9 - v11 - v10);
+				v13 = (v12 >> 12) ^ (v10 - v12 - v11);
+				v14 = (v13 << 16) ^ (v11 - v12 - v13);
+				v15 = (v14 >> 5) ^ (v12 - v14 - v13);
+				v6 = (v15 >> 3) ^ (v13 - v15 - v14);
+				v4 = (v6 << 10) ^ (v14 - v15 - v6);
+				seed = (v4 >> 15) ^ (v15 - v4 - v6);
+				string += 12;
+				v5 -= 12;
+				--v25;
+			} while (v25);
+			v3 = length;
+		}
+		v16 = v3 + seed;
+		switch (v5)
+		{
+		case 11:
+			v16 += *(string + 10) << 24;
+		case 10:
+			v16 += *(string + 9) << 16;
+		case 9:
+			v16 += *(string + 8) << 8;
+		case 8:
+			v4 += *(string + 7) << 24;
+		case 7:
+			v4 += *(string + 6) << 16;
+		case 6:
+			v4 += *(string + 5) << 8;
+		case 5:
+			v4 += *(string + 4);
+		case 4:
+			v6 += *(string + 3) << 24;
+		case 3:
+			v6 += *(string + 2) << 16;
+		case 2:
+			v6 += *(string + 1) << 8;
+		case 1:
+			v6 += *string;
+			break;
+		default:
+			break;
+		}
+		v17 = (v16 >> 13) ^ (v6 - v16 - v4);
+		v18 = (v17 << 8) ^ (v4 - v16 - v17);
+		v19 = (v18 >> 13) ^ (v16 - v18 - v17);
+		v20 = (v19 >> 12) ^ (v17 - v19 - v18);
+		v21 = (v20 << 16) ^ (v18 - v19 - v20);
+		v22 = (v21 >> 5) ^ (v19 - v21 - v20);
+		v23 = (v22 >> 3) ^ (v20 - v22 - v21);
+		return (((v23 << 10) ^ (v21 - v22 - v23)) >> 15) ^ (v22 - ((v23 << 10) ^ (v21 - v22 - v23)) - v23);
+	}
+
+	/*
+	#define HASH(str) { hash32(str, 0xABCDEF00, strlen(str)), str }
+	inline std::unordered_map<uint32_t, const char*> vlt_hashes
+	{
+		HASH("example"),
+	};
+	#undef HASH
+	*/
 
 	/* ===== F U N C T I O N S ===== */
 
@@ -227,7 +432,7 @@ namespace NFSC
 	FUNC(0x5CDEA0, void, , FEDialogScreen_ShowDialog, const char* message, const char* button1, const char* button2, const char* button3);
 	FUNC(0x5CF440, void, , FEDialogScreen_ShowOK, const char* message);
 
-	FUNC(0x572B90, uintptr_t, __thiscall, FEManager_GetUserProfile, uintptr_t fe_manager, int index);
+	FUNC(0x572B90, uintptr_t, __thiscall, FEManager_GetUserProfile, NFSC::FEStateManager* fe_manager, int index);
 
 	FUNC(0x49C020, uintptr_t, __thiscall, FEPlayerCarDB_GetCarRecordByHandle, uintptr_t player_car_db, uint32_t handle);
 
@@ -347,11 +552,23 @@ namespace NFSC
 	inline uintptr_t BulbToys_FastMemAlloc(size_t size, const char* debug_name = nullptr) 
 		{ return reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t, size_t, const char*)>(0x60BA70)(0xA99720, size, debug_name); }
 
-	inline int BulbToys_GetGameFlowState() { return Read<int>(0xA99BBC); }
+	bool BulbToys_GetDebugCamVectors(Vector3* position = nullptr, Vector3* fwd_vec = nullptr);
 
-	bool BulbToys_GetMyVehicle(uintptr_t* my_vehicle, uintptr_t* my_simable);
+	bool BulbToys_GetMyVehicle(uintptr_t* my_vehicle = nullptr, uintptr_t* my_simable = nullptr);
 
 	inline bool BulbToys_IsNFSCO() { return Read<uint32_t>(0x692539) == 28; }
 
 	inline bool BulbToys_IsPlayerLocal(uintptr_t player) { return Read<uintptr_t>(player) == 0x9EC8C0; /* RecordablePlayer::`vftable'{for `IPlayer'} */ }
+}
+
+/* ===== I M G U I ===== */
+namespace ImGui
+{
+	void NFSC_DistanceBar(float distance, float max_distance = 1000.0f, float width = 50.0f, float height = 14.0f);
+
+	float NFSC_DistanceWidth(NFSC::Vector3& other_position, float max_distance = 50.0f, float min = 1.0f, float max = 1.0f);
+
+	ImVec4 NFSC_DriverColor(int dc);
+
+	void NFSC_Location(const char* label, const char* id, float* location);
 }

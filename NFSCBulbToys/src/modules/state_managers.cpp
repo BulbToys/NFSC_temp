@@ -9,7 +9,7 @@ namespace state_managers
 		{
 			if (ImGui::BulbToys_Menu("State Managers"))
 			{
-				auto fesm = Read<NFSC::FEStateManager*>(NFSC::FEManager);
+				auto fesm = NFSC::BulbToys_GetFEManager();
 
 				int i = 0;
 				do
