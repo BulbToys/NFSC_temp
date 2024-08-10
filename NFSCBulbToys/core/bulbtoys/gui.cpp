@@ -30,6 +30,34 @@ GUI::Overlay::~Overlay()
 
 void GUI::Overlay::Render()
 {
+	// FPS counter
+	static uint32_t fps = 0;
+	bool update = false;
+
+	static LARGE_INTEGER frequency = []() {
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
+		return frequency;
+	}();
+
+	LARGE_INTEGER counter;
+	QueryPerformanceCounter(&counter);
+	static LARGE_INTEGER old_counter = counter;
+
+	static uint32_t frame_count = 0;
+	if (counter.QuadPart - old_counter.QuadPart >= frequency.QuadPart)
+	{
+		old_counter = counter;
+		fps = frame_count;
+		frame_count = 0;
+
+		update = true;
+	}
+	else
+	{
+		frame_count++;
+	}
+
 	// NFSC: Instead of calling GetClientRect, use the resolution given to us by the game
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImVec2((float)Read<int>(0xAB0AC8), (float)Read<int>(0xAB0ACC)));
@@ -37,7 +65,7 @@ void GUI::Overlay::Render()
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
 	{
 		// Splash logo
-		ImGui::Text("Powered by BulbToys %d - Built on " __DATE__ " " __TIME__, GIT_REV_COUNT + 1);
+		ImGui::Text("%d FPS | Powered by BulbToys %d - Built on " __DATE__ " " __TIME__, fps, GIT_REV_COUNT + 1);
 
 		// Overlay panels
 		auto iter = panels.begin();
