@@ -21,6 +21,18 @@ namespace NFSC
 
 	/* ===== E N U M S ===== */
 
+	namespace AIGoal
+	{
+		enum {
+			ENCOUNTER_PURSUIT = 0,
+			NONE              = 1,
+			RACER             = 2,
+			TRAFFIC           = 3,
+			PATROL            = 4,
+		};
+	}
+	inline const char* ai_goals[] = { "AIGoalEncounterPursuit", "AIGoalNone", "AIGoalRacer", "AIGoalTraffic", "AIGoalPatrol" };
+
 	namespace Chyron
 	{
 		enum
@@ -551,6 +563,15 @@ namespace NFSC
 
 	inline uintptr_t BulbToys_FastMemAlloc(size_t size, const char* debug_name = nullptr) 
 		{ return reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t, size_t, const char*)>(0x60BA70)(0xA99720, size, debug_name); }
+
+	template <uintptr_t handle>
+	inline uintptr_t BulbToys_FindInterface(uintptr_t iface)
+	{
+		uintptr_t ucom_object = Read<uintptr_t>(iface + 4);
+
+		// IInterface* UTL::COM::Object::_IList::Find(UCOM::Object::_IList*, IInterface::IHandle);
+		return reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t, uintptr_t)>(0x60CB50)(ucom_object, handle);
+	}
 
 	bool BulbToys_GetDebugCamVectors(Vector3* position = nullptr, Vector3* fwd_vec = nullptr);
 

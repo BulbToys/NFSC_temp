@@ -3,20 +3,22 @@
 
 namespace player_trail
 {
+	bool initialized = false;
+	NFSC::Attrib::Instance carpathfinder;
+	uintptr_t effect[2] = { 0, 0 };
+
 	class TrailPanel : public IPanel
 	{
-		static inline bool initialized = false;
-	public:
-		static inline NFSC::Attrib::Instance carpathfinder;
-		static inline uintptr_t effect[2] = { 0, 0 };
-	private:
 		virtual bool Draw() override final
 		{
-			if (!initialized)
+			// you'd need to open the menu to enable the trail anyways, so we do init here (modules init is too early)
+			if (!player_trail::initialized)
 			{
 				// Attrib::Gen::effects::effects
-				reinterpret_cast<uintptr_t(__thiscall*)(NFSC::Attrib::Instance&, uint32_t, int)>(0x4131B0)(carpathfinder, NFSC::Attrib_StringToKey("carpathfinder"), 0);
-				initialized = true;
+				reinterpret_cast<uintptr_t(__thiscall*)(NFSC::Attrib::Instance&, uint32_t, int)>(0x4131B0)
+					(player_trail::carpathfinder, NFSC::Attrib_StringToKey("carpathfinder"), 0);
+
+				player_trail::initialized = true;
 			}
 
 			if (ImGui::BulbToys_Menu("Player Trail"))
@@ -32,18 +34,18 @@ namespace player_trail
 
 					if (enabled)
 					{
-						effect[0] = NFSC::Sim_Effect_Effect(NFSC::BulbToys_FastMemAlloc(0x44), NFSC::PhysicsObject_GetWorldID(my_simable), 0);
-						effect[1] = NFSC::Sim_Effect_Effect(NFSC::BulbToys_FastMemAlloc(0x44), NFSC::PhysicsObject_GetWorldID(my_simable), 0);
+						player_trail::effect[0] = NFSC::Sim_Effect_Effect(NFSC::BulbToys_FastMemAlloc(0x44), NFSC::PhysicsObject_GetWorldID(my_simable), 0);
+						player_trail::effect[1] = NFSC::Sim_Effect_Effect(NFSC::BulbToys_FastMemAlloc(0x44), NFSC::PhysicsObject_GetWorldID(my_simable), 0);
 					}
 					else
 					{
-						if (effect[0])
+						if (player_trail::effect[0])
 						{
 							NFSC::Sim_Effect_vecDelDtor(effect[0], 1);
-							effect[0] = 0;
+							player_trail::effect[0] = 0;
 
 							NFSC::Sim_Effect_vecDelDtor(effect[1], 1);
-							effect[1] = 0;
+							player_trail::effect[1] = 0;
 						}
 					}
 				}
@@ -79,7 +81,7 @@ namespace player_trail
 	{
 		AIVehicleHuman_Update(ai_vehicle_human, edx, dt);
 
-		if (TrailPanel::effect[0])
+		if (player_trail::effect[0])
 		{
 			NFSC::Vector3 vecB { .0f, 1.0f, .0f };
 
@@ -97,13 +99,13 @@ namespace player_trail
 			vecA.y = dim.y * -0.5f;
 			vecA.z = dim.z * 0.5f;
 			reinterpret_cast<void(__thiscall*)(uintptr_t, uintptr_t, NFSC::Vector3&, NFSC::Vector3&, uintptr_t, bool, uintptr_t)>(0x767A50)
-				(TrailPanel::effect[0], TrailPanel::carpathfinder.mCollection, vecA, vecB, 0, true, 0);
+				(player_trail::effect[0], player_trail::carpathfinder.mCollection, vecA, vecB, 0, true, 0);
 
 			vecA.x = dim.x * 0.5f;
 			vecA.y = dim.y * -0.5f;
 			vecA.z = dim.z * 0.5f;
 			reinterpret_cast<void(__thiscall*)(uintptr_t, uintptr_t, NFSC::Vector3&, NFSC::Vector3&, uintptr_t, bool, uintptr_t)>(0x767A50)
-				(TrailPanel::effect[1], TrailPanel::carpathfinder.mCollection, vecA, vecB, 0, true, 0);
+				(player_trail::effect[1], player_trail::carpathfinder.mCollection, vecA, vecB, 0, true, 0);
 		}
 	}
 }
