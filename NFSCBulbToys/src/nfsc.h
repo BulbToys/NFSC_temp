@@ -143,6 +143,29 @@ namespace NFSC
 	inline const char* vehicle_lists[] = 
 		{ "All", "Players", "AI", "AI Racers", "AI Cops", "AI Traffic", "Racers", "Remote", "Inactive", "Trailers", "Active Racers", "Ghosts" };
 
+	namespace WRoadSegmentFlags
+	{
+		enum : uint16_t
+		{
+			IS_DECISION = 0x1,
+			TRAFFIC_NOT_ALLOWED = 0x2,
+			RACE_ROUTE_FORWARD = 0x4,
+			UNKNOWN_0x08 = 0x8,
+			IS_ENTRANCE = 0x10,
+			COPS_XOR_TRAFFIC = 0x20,
+			IS_ONE_WAY = 0x40,
+			IS_SHORTCUT = 0x80,
+			IS_CURVA_PATH = 0x100,
+			IS_END_INVERTED = 0x200,
+			IS_START_INVERTED = 0x400,
+			IS_SIDE_ROUTE = 0x800,
+			CROSSES_BARRIER = 0x1000,
+			CROSSES_DRIVE_THRU_BARRIER = 0x2000,
+			UNKNOWN_0x4000 = 0x4000,
+			IS_IN_RACE = 0x8000,
+		};
+	}
+
 	/* ===== S T R U C T S ===== */
 
 	// B, G, R, A (stored as ints, but they're actually chars in practice)
@@ -221,15 +244,15 @@ namespace NFSC
 
 	struct WRoadNav // 780u
 	{
-		uint8_t pad0[0x58] { 0 };
+		uint8_t pad0[0x58]{ 0 };
 
 		bool fValid = false;
 
-		uint8_t pad1[0x1B] { 0 };
+		uint8_t pad1[0x1B]{ 0 };
 
 		int fNavType = 0;
 
-		uint8_t pad2[0x10] { 0 };
+		uint8_t pad2[0x10]{ 0 };
 
 		char fNodeInd = 0;
 
@@ -237,17 +260,48 @@ namespace NFSC
 
 		short fSegmentInd = 0;
 
-		uint8_t pad4[0x8] { 0 };
+		uint8_t pad4[0x8]{ 0 };
 
-		NFSC::Vector3 fPosition { 0, 0, 0 };
-		NFSC::Vector3 fLeftPosition { 0, 0, 0 };
-		NFSC::Vector3 fRightPosition { 0, 0, 0 };
-		NFSC::Vector3 fForwardVector { 0, 0, 0 };
+		Vector3 fPosition{ 0, 0, 0 };
+		Vector3 fLeftPosition{ 0, 0, 0 };
+		Vector3 fRightPosition{ 0, 0, 0 };
+		Vector3 fForwardVector{ 0, 0, 0 };
 
-		uint8_t pad5[0x248] { 0 };
+		uint8_t pad5[0x248]{ 0 };
+	};
+
+	struct WRoadSegment
+	{
+		uint16_t fNodeIndex[2];
+
+		uint8_t pad0[0x6];
+
+		// WRoadSegmentFlags
+		uint16_t fFlags;
+
+		uint8_t pad1[0xA];
+	};
+
+	struct WRoadNode
+	{
+		Vector3 fPosition;
+
+		uint8_t pad0[0x4];
+
+		char fNumSegments;
+		uint16_t fSegmentIndex[7];
 	};
 
 	/* ===== C O N S T A N T S ===== */
+
+	namespace WRoadNetwork
+	{
+		constexpr uintptr_t fNumSegments = 0xB77E84;
+
+		constexpr uintptr_t fSegments = 0xB77ECC;
+
+		constexpr uintptr_t fNodes = 0xB77EC8;
+	}
 
 	// Globals
 	inline NFSC::FEStateManager* BulbToys_GetFEManager() { return Read<NFSC::FEStateManager*>(0xA97A7C); }
@@ -257,6 +311,9 @@ namespace NFSC
 	inline uintptr_t BulbToys_GetGManagerBase() { return Read<uintptr_t>(0xA98294); }
 
 	inline uintptr_t BulbToys_GetWorldMap() { return Read<uintptr_t>(0xA977F0); }
+
+	// Global Objects
+	constexpr uintptr_t DALManager = 0xA8AD30;
 
 	// ListableSets
 	inline ListableSet<uintptr_t>* VehicleList[VLType::MAX] = {

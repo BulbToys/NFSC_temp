@@ -6,13 +6,14 @@ namespace movies
 	{
 		// "NTSC\0" is 5, but we add an extra character to invalidate eg. "NTSCx"
 		Settings::String<"Movies", "Force", "off", 6> force;
+		auto value = force.Get();
 
 		// Only psychopaths use mixed case here
-		if (!strcmp(force.Get(), "pal") || !strcmp(force.Get(), "PAL"))
+		if (!strcmp(value, "pal") || !strcmp(value, "PAL"))
 		{
 			Patch<uint16_t>(0x583BEF, 0x9090);
 		}
-		if (!strcmp(force.Get(), "ntsc") || !strcmp(force.Get(), "NTSC"))
+		if (!strcmp(value, "ntsc") || !strcmp(value, "NTSC"))
 		{
 			Patch<uint8_t>(0x583BEF, 0xEB);
 		}
