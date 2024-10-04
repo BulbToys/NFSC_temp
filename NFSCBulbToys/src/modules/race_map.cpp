@@ -16,7 +16,7 @@ namespace race_map
 		}
 	}
 
-	int GenerateFLM()
+	int GenerateFLM(int limit = INT_MAX)
 	{
 		DestroyFLM();
 
@@ -46,9 +46,12 @@ namespace race_map
 
 		int bezier_count = 0;
 
-		for (int i = 0; i < Read<uint32_t>(NFSC::WRoadNetwork::fNumSegments); i++)
+		auto segments = NFSC::WRoadNetwork::BulbToys_GetSegments();
+		auto nodes = NFSC::WRoadNetwork::BulbToys_GetNodes();
+
+		for (int i = 0; i < NFSC::WRoadNetwork::BulbToys_GetNumSegments(); i++)
 		{
-			auto road_segment = Read<NFSC::WRoadSegment*>(NFSC::WRoadNetwork::fSegments) + i;
+			auto road_segment = segments + i;
 
 			if (road_segment &&
 				((road_segment->fFlags & NFSC::WRoadSegmentFlags::IS_IN_RACE) != 0) &&
@@ -60,7 +63,7 @@ namespace race_map
 				{
 					for (int k = 0; k < 2; k++)
 					{
-						auto road_node = Read<NFSC::WRoadNode*>(NFSC::WRoadNetwork::fNodes) + road_segment->fNodeIndex[k];
+						auto road_node = nodes + road_segment->fNodeIndex[k];
 
 						for (int j = 0; j < road_node->fNumSegments; j++)
 						{
@@ -68,7 +71,7 @@ namespace race_map
 
 							if (segment_index != i)
 							{
-								auto other_segment = Read<NFSC::WRoadSegment*>(NFSC::WRoadNetwork::fSegments) + segment_index;
+								auto other_segment = segments + segment_index;
 								if (((other_segment->fFlags & NFSC::WRoadSegmentFlags::IS_IN_RACE) != 0) &&
 									((other_segment->fFlags & NFSC::WRoadSegmentFlags::IS_SIDE_ROUTE) != 0))
 								{
@@ -84,23 +87,23 @@ namespace race_map
 				{
 					NFSC::Vector2 points[4]{ {0, 0}, {0, 0}, {0, 0}, {0, 0} };
 					NFSC::Vector3 controls[2]{ {0, 0, 0}, {0, 0, 0} };
-					NFSC::WRoadNode* nodes[2]{
-						Read<NFSC::WRoadNode*>(NFSC::WRoadNetwork::fNodes) + road_segment->fNodeIndex[0],
-						Read<NFSC::WRoadNode*>(NFSC::WRoadNetwork::fNodes) + road_segment->fNodeIndex[1]
+					NFSC::WRoadNode* new_nodes[2]{
+						nodes + road_segment->fNodeIndex[0],
+						nodes + road_segment->fNodeIndex[1]
 					};
 
 					// get start/end control
 					reinterpret_cast<void(__thiscall*)(NFSC::WRoadSegment*, NFSC::Vector3*)>(0x404D80)(road_segment, &controls[0]);
 					reinterpret_cast<void(__thiscall*)(NFSC::WRoadSegment*, NFSC::Vector3*)>(0x5D1CA0)(road_segment, &controls[1]);
 
-					points[0].y = -nodes[0]->fPosition.x;
-					points[0].x = nodes[0]->fPosition.z;
-					points[1].y = -(controls[0].x + nodes[0]->fPosition.x);
-					points[1].x = controls[0].z + nodes[0]->fPosition.z;
-					points[2].y = -(controls[1].x + nodes[1]->fPosition.x);
-					points[2].x = controls[1].z + nodes[1]->fPosition.z;
-					points[3].y = -nodes[1]->fPosition.x;
-					points[3].x = nodes[1]->fPosition.z;
+					points[0].y = -new_nodes[0]->fPosition.x;
+					points[0].x = new_nodes[0]->fPosition.z;
+					points[1].y = -(controls[0].x + new_nodes[0]->fPosition.x);
+					points[1].x = controls[0].z + new_nodes[0]->fPosition.z;
+					points[2].y = -(controls[1].x + new_nodes[1]->fPosition.x);
+					points[2].x = controls[1].z + new_nodes[1]->fPosition.z;
+					points[3].y = -new_nodes[1]->fPosition.x;
+					points[3].x = new_nodes[1]->fPosition.z;
 
 					float scaled[2]{ track_map_size_x * 16.0f, track_map_size_x * -0.5f };
 
@@ -142,7 +145,12 @@ namespace race_map
 					reinterpret_cast<void(__thiscall*)(uintptr_t, NFSC::Vector2*, NFSC::Vector2*, NFSC::Vector2*, NFSC::Vector2*, float)>(0x7598E0)
 						(race_map::flm, &points[0], &points[1], &points[2], &points[3], 0.25);
 
+					// custom counter & limit for testing
 					bezier_count++;
+					if (bezier_count == limit)
+					{
+						break;
+					}
 				}
 			}
 		}
@@ -188,11 +196,26 @@ namespace race_map
 		{
 			if (ImGui::BulbToys_Menu("Race Map"))
 			{
+				static int limit = 1000;
+				ImGui::SliderInt("##BezierLimit", &limit, 1, 10000);
+
+				static bool use_limit = false;
+				ImGui::Checkbox("Bezier Limit", &use_limit);
+
 				static int bezier_count = 0;
 				if (ImGui::Button("Generate FLM"))
 				{
 					ImGui::End();
-					bezier_count = GenerateFLM();
+
+					if (use_limit)
+					{
+						bezier_count = GenerateFLM(limit);
+					}
+					else
+					{
+						bezier_count = GenerateFLM();
+					}
+
 					return false;
 				}
 				if (race_map::flm)

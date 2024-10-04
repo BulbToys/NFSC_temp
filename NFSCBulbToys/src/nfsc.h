@@ -296,11 +296,11 @@ namespace NFSC
 
 	namespace WRoadNetwork
 	{
-		constexpr uintptr_t fNumSegments = 0xB77E84;
+		inline uint32_t BulbToys_GetNumSegments() { return Read<uint32_t>(0xB77E84); }
 
-		constexpr uintptr_t fSegments = 0xB77ECC;
+		inline NFSC::WRoadSegment* BulbToys_GetSegments() { return Read<NFSC::WRoadSegment*>(0xB77ECC); }
 
-		constexpr uintptr_t fNodes = 0xB77EC8;
+		inline NFSC::WRoadNode* BulbToys_GetNodes() { return Read<NFSC::WRoadNode*>(0xB77EC8); }
 	}
 
 	// Globals
@@ -634,6 +634,8 @@ namespace NFSC
 
 	bool BulbToys_GetMyVehicle(uintptr_t* my_vehicle = nullptr, uintptr_t* my_simable = nullptr);
 
+	void BulbToys_GetScreenPosition(Vector3& world, Vector3& screen);
+
 	inline bool BulbToys_IsNFSCO() { return Read<uint32_t>(0x692539) == 28; }
 
 	inline bool BulbToys_IsPlayerLocal(uintptr_t player) { return Read<uintptr_t>(player) == 0x9EC8C0; /* RecordablePlayer::`vftable'{for `IPlayer'} */ }
@@ -644,9 +646,11 @@ namespace ImGui
 {
 	void NFSC_DistanceBar(float distance, float max_distance = 1000.0f, float width = 50.0f, float height = 14.0f);
 
-	float NFSC_DistanceWidth(NFSC::Vector3& other_position, float max_distance = 50.0f, float min = 1.0f, float max = 1.0f);
+	float NFSC_DistanceWidth(NFSC::Vector3& other_position, float max_distance = 50.0f, float min = 1.0f, float max = 5.0f);
 
 	ImVec4 NFSC_DriverColor(int dc);
 
 	void NFSC_Location(const char* label, const char* id, float* location);
+
+	void NFSC_OverlayText(ImDrawList* draw_list, ImVec2& position, ImVec4& color, const ImVec4* bg_color = nullptr, const char* fmt = nullptr, ...);
 }

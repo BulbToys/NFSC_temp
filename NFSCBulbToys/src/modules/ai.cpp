@@ -1,6 +1,8 @@
 #include "../../core/bulbtoys.h"
 #include "../nfsc.h"
 
+#include <random>
+
 namespace ai
 {
 	namespace encounter
@@ -33,7 +35,7 @@ namespace ai
 		{
 			if (ImGui::BulbToys_Menu("AI"))
 			{
-				// Vehicle name
+				// Next encounter vehicle
 				ImGui::Checkbox("Next encounter vehicle:", &ai::encounter::overridden);
 				ImGui::InputText("##NEVehicle", ai::encounter::vehicle, IM_ARRAYSIZE(ai::encounter::vehicle));
 
@@ -114,7 +116,8 @@ namespace ai
 
 				// Heat level
 				static float heat_level = 1;
-				if (my_simable)
+				uintptr_t my_simable = 0;
+				if (NFSC::BulbToys_GetMyVehicle(nullptr, &my_simable))
 				{
 					uintptr_t my_perp = NFSC::BulbToys_FindInterface<0x4061D0>(my_simable);
 					heat_level = reinterpret_cast<float(__thiscall*)(uintptr_t)>(0x40AF00)(my_perp);
@@ -145,27 +148,86 @@ namespace ai
 		return nullptr;
 	}
 
+	// Optionally override encounter spawn requirement
+	HOOK(0x422BF0, bool, __fastcall, AITrafficManager_NeedsEncounter, uintptr_t traffic_manager);
+
+	// Optionally override traffic spawn requirement
+	HOOK(0x422990, bool, __fastcall, AITrafficManager_NeedsTraffic, uintptr_t traffic_manager);
+
+	// Optionally override whether racers should be pursued or not
+	HOOK(VIRTUAL, bool, __fastcall, AICopManager_CanPursueRacers, uintptr_t cop_manager);
+
+	// Custom encounter vehicles
+	HOOK(0x42CB70, uintptr_t, __fastcall, AITrafficManager_GetAvailablePresetVehicle, uintptr_t ai_traffic_manager, uintptr_t edx, uint32_t skin_key, uint32_t encounter_key);
+
+	// Random vehicle tier - causes sound crashes!
+	//HOOK(0x618220, int, __fastcall, GCareer_GetOpponentVehicleTier, uintptr_t g_career, void* edx, int tier);
 
 	void Init()
 	{
-		// Optionally override encounter spawn requirement
 		CREATE_HOOK(AITrafficManager_NeedsEncounter);
 
-		// Optionally override traffic spawn requirement
 		CREATE_HOOK(AITrafficManager_NeedsTraffic);
 
-		// Optionally override whether racers should be pursued or not
 		CREATE_VTABLE_PATCH(0x9C3B58, AICopManager_CanPursueRacers);
 
-		// Custom encounter vehicles
 		CREATE_HOOK(AITrafficManager_GetAvailablePresetVehicle);
+
+		//CREATE_HOOK(GCareer_GetOpponentVehicleTier);
 	}
 
 	void End()
 	{
-		Hooks::Destroy();
+		//Hooks::Destroy(0x618220);
+
+		Hooks::Destroy(0x42CB70);
+
+		Unpatch(0x9C3B58);
+
+		Hooks::Destroy(0x422990);
+
+		Hooks::Destroy(0x422BF0);
 	}
 
+	/*
+	int __fastcall GCareer_GetOpponentVehicleTier_(uintptr_t g_career, void* edx, int tier)
+	{
+		std::random_device dev;
+		std::mt19937 rng(dev());
+		std::uniform_int_distribution<std::mt19937::result_type> dist6(1, 3);
+
+		return dist6(rng);
+	}
+	*/
+
+	bool __fastcall AITrafficManager_NeedsEncounter_(uintptr_t traffic_manager)
+	{
+		// If we've overridden the value, use our own. Instead, let the game decide normally
+		return ai::needs_encounter::overridden ? ai::needs_encounter::value : AITrafficManager_NeedsEncounter(traffic_manager);
+	}
+
+	bool __fastcall AITrafficManager_NeedsTraffic_(uintptr_t traffic_manager)
+	{
+		// Ditto
+		return ai::needs_traffic::overridden ? ai::needs_traffic::value : AITrafficManager_NeedsTraffic(traffic_manager);
+	}
+
+	bool __fastcall AICopManager_CanPursueRacers_(uintptr_t ai_cop_manager)
+	{
+		// Ditto
+		return ai::pursue_racers::overridden ? ai::pursue_racers::value : AICopManager_CanPursueRacers(ai_cop_manager);
+	}
+
+	uintptr_t __fastcall AITrafficManager_GetAvailablePresetVehicle_(uintptr_t ai_traffic_manager, uintptr_t edx, uint32_t skin_key, uint32_t encounter_key)
+	{
+		if (ai::encounter::overridden)
+		{
+			skin_key = 0;
+			encounter_key = NFSC::Attrib_StringToKey(ai::encounter::vehicle);
+		}
+
+		return AITrafficManager_GetAvailablePresetVehicle(ai_traffic_manager, edx, skin_key, encounter_key);
+	}
 }
 
 MODULE(ai);

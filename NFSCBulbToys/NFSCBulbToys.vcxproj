@@ -65,6 +65,7 @@
     <ClCompile Include="core\minhook\hook.c" />
     <ClCompile Include="core\minhook\trampoline.c" />
     <ClCompile Include="src\dllmain.cpp" />
+    <ClCompile Include="src\modules\ai.cpp" />
     <ClCompile Include="src\modules\click_tp.cpp" />
     <ClCompile Include="src\modules\crew.cpp" />
     <ClCompile Include="src\modules\fast_boot_flow.cpp" />
@@ -72,6 +73,7 @@
     <ClCompile Include="src\modules\frontend.cpp" />
     <ClCompile Include="src\modules\movies.cpp" />
     <ClCompile Include="src\modules\qr_customize.cpp" />
+    <ClCompile Include="src\modules\road_segments.cpp" />
     <ClCompile Include="src\modules\state_managers.cpp" />
     <ClCompile Include="src\modules\testing.cpp" />
     <ClCompile Include="src\modules\player_trail.cpp" />

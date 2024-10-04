@@ -130,6 +130,25 @@ bool NFSC::BulbToys_GetMyVehicle(uintptr_t* my_vehicle, uintptr_t* my_simable)
 	return false;
 }
 
+void NFSC::BulbToys_GetScreenPosition(Vector3& world, Vector3& screen)
+{
+	Vector4 out, input = { world.z, -world.x, world.y, 1.0 };
+
+	// ViewPlatInfoTable[EVIEW_PLAYER (1)].ViewProjectionMatrix
+	Matrix4 proj = Read<Matrix4>((0xB1A780 + 1 * 0x1A0) + 0x80);
+
+	// D3DXVec4Transform
+	reinterpret_cast<Vector4* (__stdcall*)(Vector4*, Vector4*, Matrix4*)>(0x86B29C)(&out, &input, &proj);
+
+	float i_w = 1.0f / out.w;
+	out.x *= i_w;
+	out.y *= i_w;
+
+	screen.x = (out.x + 1.0f) * Read<int>(0xAB0AC8) * 0.5f; // ResolutionX
+	screen.y = (out.y - 1.0f) * Read<int>(0xAB0ACC) * -0.5f; // ResolutionY
+	screen.z = i_w * out.z;
+}
+
 void ImGui::NFSC_DistanceBar(float distance, float max_distance, float width, float height)
 {
 	char overlay[8];
@@ -183,6 +202,22 @@ void ImGui::NFSC_Location(const char* label, const char* id, float* location)
 		}
 	}
 	ImGui::InputFloat3(id, location);
+}
+
+void ImGui::NFSC_OverlayText(ImDrawList* draw_list, ImVec2& position, ImVec4& color, const ImVec4* bg_color, const char* fmt, ...)
+{
+	char text[512];
+	va_list va;
+	va_start(va, fmt);
+	vsprintf_s(text, 512, fmt, va);
+
+	ImVec2 text_size = ImGui::CalcTextSize(text);
+
+	auto bg_color_u32 = ImGui::ColorConvertFloat4ToU32(bg_color ? *bg_color : ImVec4(color.x / 5, color.y / 5, color.z / 5, color.w));
+
+	draw_list->AddRectFilled({ position.x - text_size.x / 2, position.y }, { position.x + text_size.x / 2, position.y + text_size.y }, bg_color_u32, 1.0f);
+
+	draw_list->AddText({ position.x - text_size.x / 2, position.y }, ImGui::ColorConvertFloat4ToU32(color), text);
 }
 
 ImVec4 ImGui::NFSC_DriverColor(int dc)
