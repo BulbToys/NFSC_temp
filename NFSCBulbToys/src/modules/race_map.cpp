@@ -16,7 +16,7 @@ namespace race_map
 		}
 	}
 
-	int GenerateFLM(int limit = INT_MAX)
+	int GenerateFLM(float x_offs = 0, float y_offs = 0, int limit = INT_MAX)
 	{
 		DestroyFLM();
 
@@ -124,7 +124,11 @@ namespace race_map
 						{
 							points[j].x -= 951.f;
 						}
-						points[j].y = points[j].y - 1411.f;
+						points[j].y -= 1411.f;
+
+						// apply our own offsets
+						points[j].x += x_offs;
+						points[j].y += y_offs;
 
 						points[j].x *= 1.27f;
 						points[j].y *= 1.27f;
@@ -202,6 +206,16 @@ namespace race_map
 				static bool use_limit = false;
 				ImGui::Checkbox("Bezier Limit", &use_limit);
 
+				ImGui::Separator();
+
+				static float x_offs = .0f;
+				ImGui::BulbToys_SliderFloat("X Offset", "##FLMXOffset", &x_offs, -10000, +10000);
+
+				static float y_offs = .0f;
+				ImGui::BulbToys_SliderFloat("Y Offset", "##FLMYOffset", &y_offs, -10000, +10000);
+
+				ImGui::Separator();
+
 				static int bezier_count = 0;
 				if (ImGui::Button("Generate FLM"))
 				{
@@ -209,11 +223,11 @@ namespace race_map
 
 					if (use_limit)
 					{
-						bezier_count = GenerateFLM(limit);
+						bezier_count = GenerateFLM(x_offs, y_offs, limit);
 					}
 					else
 					{
-						bezier_count = GenerateFLM();
+						bezier_count = GenerateFLM(x_offs, y_offs);
 					}
 
 					return false;
