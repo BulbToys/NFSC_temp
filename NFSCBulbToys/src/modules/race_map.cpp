@@ -5,6 +5,7 @@ namespace race_map
 {
 	bool enabled = true;
 	uintptr_t flm;
+	bool show_icons = true;
 
 	void DestroyFLM()
 	{
@@ -200,21 +201,26 @@ namespace race_map
 		{
 			if (ImGui::BulbToys_Menu("Race Map"))
 			{
+				ImGui::Checkbox("Show map icons", &race_map::show_icons);
+
+				if (ImGui::Button("Open World Map"))
+				{
+					reinterpret_cast<bool(__thiscall*)(void*, int, int, int, char)>(0x5A0D90)(NFSC::BulbToys_GetFEManager(), 0, 0, 0, 0);
+				}
+
+				ImGui::Separator();
+
 				static int limit = 1000;
 				ImGui::SliderInt("##BezierLimit", &limit, 1, 10000);
 
 				static bool use_limit = false;
 				ImGui::Checkbox("Bezier Limit", &use_limit);
 
-				ImGui::Separator();
-
 				static float x_offs = .0f;
 				ImGui::BulbToys_SliderFloat("X Offset", "##FLMXOffset", &x_offs, -10000, +10000);
 
 				static float y_offs = .0f;
 				ImGui::BulbToys_SliderFloat("Y Offset", "##FLMYOffset", &y_offs, -10000, +10000);
-
-				ImGui::Separator();
 
 				static int bezier_count = 0;
 				if (ImGui::Button("Generate FLM"))
@@ -260,7 +266,10 @@ namespace race_map
 
 	HOOK(0x573D30, void, __stdcall, cFEngRender_RenderTerritoryBorder, uintptr_t feobject);
 
-	HOOK(0x4B57E0, bool, __fastcall, DALWorldMap_GetBool, uintptr_t dal_world_map, uintptr_t edx, int id, bool* result);
+	//HOOK(0x4B57E0, bool, __fastcall, DALWorldMap_GetBool, uintptr_t dal_world_map, uintptr_t edx, int id, bool* result);
+
+	HOOK(0x582E60, bool, __fastcall, WorldMap_IsInPursuit, uintptr_t world_map);
+	HOOK(0x5AE880, void, __fastcall, WorldMap_SetupPursuit, uintptr_t world_map);
 
 	void Init()
 	{
@@ -272,7 +281,11 @@ namespace race_map
 		}
 
 		CREATE_HOOK(cFEngRender_RenderTerritoryBorder);
-		CREATE_HOOK(DALWorldMap_GetBool);
+
+		//CREATE_HOOK(DALWorldMap_GetBool);
+
+		CREATE_HOOK(WorldMap_IsInPursuit);
+		CREATE_HOOK(WorldMap_SetupPursuit);
 	}
 
 	void End()
@@ -282,7 +295,11 @@ namespace race_map
 			return;
 		}
 
-		Hooks::Destroy(0x4B57E0);
+		Hooks::Destroy(0x5AE880);
+		Hooks::Destroy(0x582E60);
+
+		//Hooks::Destroy(0x4B57E0);
+
 		Hooks::Destroy(0x573D30);
 	}
 
@@ -299,10 +316,29 @@ namespace race_map
 		cFEngRender_RenderTerritoryBorder(object);
 	}
 
+	/*
 	bool __fastcall DALWorldMap_GetBool_(uintptr_t dal_world_map, uintptr_t edx, int id, bool* result)
 	{
 		*result = true;
 		return true;
+	}
+	*/
+
+	bool __fastcall WorldMap_IsInPursuit_(uintptr_t world_map)
+	{
+		if (race_map::show_icons)
+		{
+			return WorldMap_IsInPursuit(world_map);
+		}
+		return true;
+	}
+
+	void __fastcall WorldMap_SetupPursuit_(uintptr_t world_map)
+	{
+		if (race_map::show_icons)
+		{
+			WorldMap_SetupPursuit(world_map);
+		}
 	}
 }
 
