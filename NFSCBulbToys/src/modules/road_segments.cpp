@@ -42,7 +42,7 @@ namespace road_segments
 	{
 		virtual bool Draw() override final
 		{
-			if (road_segments::overlay)
+			if (road_segments::overlay && NFSC::BulbToys_GetGameFlowState() == NFSC::GFS::RACING)
 			{
 				auto draw_list = ImGui::GetWindowDrawList();
 
