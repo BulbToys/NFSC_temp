@@ -7,6 +7,68 @@ namespace testing
 	{
 		virtual bool Draw() override final
 		{
+			if (ImGui::BulbToys_Menu("Test Default Controls"))
+			{
+				struct DefaultControl
+				{
+					const char* mName;
+					unsigned int mHasMainBind;
+					unsigned int mMainBind;
+					unsigned int mUnknown00;
+					unsigned int mHasSecondaryBind;
+					unsigned int mSecondaryBind;
+					unsigned int mIndex;
+					unsigned int mUnknown01;
+					unsigned int mUnknown02;
+					unsigned int mUnknown03;
+					unsigned int mUnknown04;
+					unsigned int mUnknown05;
+					unsigned int mUnknown06;
+				};
+
+				auto controls = reinterpret_cast<DefaultControl*>(0xA61C88);
+				char buffer[32];
+				
+				for (int i = 0; i < 72; i++)
+				{
+					auto& control = controls[i];
+
+					ImGui::Text("%2d: %s", i + 1, control.mName);
+
+					if (control.mHasMainBind)
+					{
+						GetKeyNameTextA(control.mMainBind << 16, buffer, 32);
+
+						if (strlen(buffer) > 0)
+						{
+							ImGui::SameLine();
+							ImGui::Text("(%s = %d)", buffer, control.mMainBind);
+						}
+						else
+						{
+							ImGui::SameLine();
+							ImGui::Text("(%d)", control.mMainBind);
+						}
+					}
+
+					if (control.mHasSecondaryBind)
+					{
+						GetKeyNameTextA(control.mSecondaryBind << 16, buffer, 32);
+
+						if (strlen(buffer) > 0)
+						{
+							ImGui::SameLine();
+							ImGui::Text("[%s = %d]", buffer, control.mSecondaryBind);
+						}
+						else
+						{
+							ImGui::SameLine();
+							ImGui::Text("[%d]", control.mSecondaryBind);
+						}
+					}
+				}
+			}
+
 			if (ImGui::BulbToys_Menu("Testing"))
 			{
 				// Replace Statistics with Template
@@ -107,6 +169,21 @@ namespace testing
 
 		return nullptr;
 	}
+
+	void TestBind()
+	{
+		Error("meow :3");
+	}
+
+	void Init()
+	{
+		Patch<uintptr_t>(0x59FFBD, reinterpret_cast<uintptr_t>(TestBind) - 0x59FFC1);
+	}
+
+	void End()
+	{
+		Unpatch(0x59FFBD);
+	}
 }
 
-MODULE_PANEL_ONLY(testing);
+MODULE(testing);
