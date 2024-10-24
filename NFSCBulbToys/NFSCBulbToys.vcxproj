@@ -69,7 +69,7 @@
     <ClCompile Include="src\modules\click_tp.cpp" />
     <ClCompile Include="src\modules\crew.cpp" />
     <ClCompile Include="src\modules\fast_boot_flow.cpp" />
-    <ClCompile Include="src\modules\fov.cpp" />
+    <ClCompile Include="src\modules\camera.cpp" />
     <ClCompile Include="src\modules\frontend.cpp" />
     <ClCompile Include="src\modules\movies.cpp" />
     <ClCompile Include="src\modules\qr_customize.cpp" />

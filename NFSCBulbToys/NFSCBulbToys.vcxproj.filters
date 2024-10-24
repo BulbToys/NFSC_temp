@@ -65,7 +65,7 @@
     <ClCompile Include="src\modules\frontend.cpp" />
     <ClCompile Include="src\modules\testing.cpp" />
     <ClCompile Include="src\modules\crew.cpp" />
-    <ClCompile Include="src\modules\fov.cpp" />
+    <ClCompile Include="src\modules\camera.cpp" />
     <ClCompile Include="src\modules\qr_customize.cpp" />
     <ClCompile Include="src\modules\race_map.cpp" />
     <ClCompile Include="src\modules\road_segments.cpp" />

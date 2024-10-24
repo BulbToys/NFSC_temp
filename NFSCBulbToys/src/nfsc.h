@@ -591,7 +591,6 @@ namespace NFSC
 	FUNC(0x6ECE10, uintptr_t, __thiscall, Sim_Effect_vecDelDtor, uintptr_t sim_effect, bool should_free);
 	FUNC(0x7625E0, uintptr_t, __thiscall, Sim_Effect_Effect, uintptr_t sim_effect, uint32_t owner_id, uintptr_t participant);
 
-
 	FUNC(0x411FD0, float, , UMath_Distance, NFSC::Vector3* vec1, Vector3* vec2);
 	FUNC(0x401DD0, float, , UMath_DistanceNoSqrt, NFSC::Vector3* vec1, Vector3* vec2);
 	FUNC(0x412190, void, , UMath_Normalize, NFSC::Vector3* vec);
