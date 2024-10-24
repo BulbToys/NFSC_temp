@@ -1,4 +1,5 @@
 #include "../../core/bulbtoys.h"
+#include "../../core/bulbtoys/io.h"
 #include "../nfsc.h"
 
 namespace camera
@@ -79,13 +80,26 @@ namespace camera
 
 	HOOK(0x4822F0, void, __fastcall, Camera_SetCameraMatrix, uintptr_t camera, uintptr_t edx, NFSC::Matrix4* matrix4, float dt);
 
+	void __declspec(noinline) DebugCam()
+	{
+		if (!NFSC::BulbToys_IsNFSCO())
+		{
+			NFSC::CameraAI_SetAction(1, "CDActionDebug");
+		}
+	}
+	IO::Hotkey<"DebugCam", VK_BACK>* debug_cam = nullptr;
+
 	void Init()
 	{
 		CREATE_HOOK(Camera_SetCameraMatrix);
+
+		debug_cam = new IO::Hotkey<"DebugCam", VK_BACK> { DebugCam };
 	}
 
 	void End()
 	{
+		delete debug_cam;
+
 		Hooks::Destroy(0x4822F0);
 	}
 

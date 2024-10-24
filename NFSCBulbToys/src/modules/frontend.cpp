@@ -1,5 +1,4 @@
 #include "../../core/bulbtoys.h"
-#include "../../core/bulbtoys/io.h"
 #include "../nfsc.h"
 
 namespace frontend
@@ -48,7 +47,6 @@ namespace frontend
 
 				// UnlockAll
 				ImGui::Checkbox("UnlockAll", reinterpret_cast<bool*>(0xA9E6C0));
-
 
 				/*
 				* TODO wrong warp fix
@@ -103,25 +101,6 @@ namespace frontend
 
 		return nullptr;
 	}
-
-	void __declspec(noinline) DebugCam()
-	{
-		if (!NFSC::BulbToys_IsNFSCO())
-		{
-			NFSC::CameraAI_SetAction(1, "CDActionDebug");
-		}
-	}
-	IO::Hotkey<"DebugCam", VK_BACK>* debug_cam = nullptr;
-
-	void Init()
-	{
-		debug_cam = new IO::Hotkey<"DebugCam", VK_BACK> { DebugCam };
-	}
-
-	void End()
-	{
-		delete debug_cam;
-	}
 }
 
-MODULE(frontend);
+MODULE_PANEL_ONLY(frontend);
