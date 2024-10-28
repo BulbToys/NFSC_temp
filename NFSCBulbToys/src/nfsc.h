@@ -312,8 +312,12 @@ namespace NFSC
 
 	inline uintptr_t BulbToys_GetWorldMap() { return Read<uintptr_t>(0xA977F0); }
 
+	inline uintptr_t BulbToys_GetFeOnlineMessengerChatPopup() { return Read<uintptr_t>(0xA97B98); }
+
 	// Global Objects
 	constexpr uintptr_t DALManager = 0xA8AD30;
+
+	constexpr uintptr_t NullPointer = 0x9C2494;
 
 	// ListableSets
 	inline ListableSet<uintptr_t>* VehicleList[VLType::MAX] = {
@@ -496,12 +500,19 @@ namespace NFSC
 	FUNC(0x59D450, void, , FE_ShowChyron, const char* message, int icon, bool linger);
 
 	FUNC(0x5711C0, uint32_t, , FE_String_HashString, const char* fmt, ...);
+	FUNC(0x5A0910, int, , FE_String_Printf, const char* package_name, unsigned int hash, const char* fmt, ...);
 	FUNC(0x583B10, void, , FE_String_SetString, uintptr_t object, const wchar_t* wide_string);
 
 	FUNC(0x5CDEA0, void, , FEDialogScreen_ShowDialog, const char* message, const char* button1, const char* button2, const char* button3);
+	FUNC(0x5C9DB0, void, , FEDialogScreen_ShowKeyboard, unsigned int hash, int keyboard_mode, uintptr_t unk1, uintptr_t unk2, uint32_t unk3, char unk4, uint32_t unk5);
 	FUNC(0x5CF440, void, , FEDialogScreen_ShowOK, const char* message);
 
 	FUNC(0x572B90, uintptr_t, __thiscall, FEManager_GetUserProfile, NFSC::FEStateManager* fe_manager, int index);
+
+	FUNC(0x5EC760, uintptr_t, __thiscall, FEObject_FindScript, uintptr_t fe_object, unsigned int hash);
+	FUNC(0x5F3610, void, __thiscall, FEObject_SetScript, uintptr_t fe_object, uintptr_t fe_script, bool force);
+
+	FUNC(0x5F3760, uintptr_t, __thiscall, FEPackage_FindObjectByHash, uintptr_t fe_package, unsigned int hash);
 
 	FUNC(0x49C020, uintptr_t, __thiscall, FEPlayerCarDB_GetCarRecordByHandle, uintptr_t player_car_db, uint32_t handle);
 
@@ -631,6 +642,11 @@ namespace NFSC
 
 		// IInterface* UTL::COM::Object::_IList::Find(UCOM::Object::_IList*, IInterface::IHandle);
 		return reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t, uintptr_t)>(0x60CB50)(ucom_object, handle);
+	}
+
+	inline uintptr_t BulbToys_FindPackage(const char* name)
+	{
+		return reinterpret_cast<uintptr_t(__thiscall*)(uintptr_t, const char*)>(0x5983F0)(Read<uintptr_t>(0xA97A78), name);
 	}
 
 	bool BulbToys_GetDebugCamVectors(Vector3* position = nullptr, Vector3* fwd_vec = nullptr);
