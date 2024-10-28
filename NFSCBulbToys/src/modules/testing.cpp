@@ -169,21 +169,6 @@ namespace testing
 
 		return nullptr;
 	}
-
-	void TestBind()
-	{
-		Error("meow :3");
-	}
-
-	void Init()
-	{
-		Patch<uintptr_t>(0x59FFBD, reinterpret_cast<uintptr_t>(TestBind) - 0x59FFC1);
-	}
-
-	void End()
-	{
-		Unpatch(0x59FFBD);
-	}
 }
 
-MODULE(testing);
+MODULE_PANEL_ONLY(testing);

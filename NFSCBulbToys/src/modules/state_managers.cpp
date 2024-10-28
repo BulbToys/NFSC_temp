@@ -21,7 +21,7 @@ namespace state_managers
 
 					ImGui::BulbToys_AddyLabel(reinterpret_cast<uintptr_t>(fesm), "%d: %s", i++, fesm->GetName());
 
-					ImGui::BulbToys_AddyLabel(fesm->vtable, " - VTable");
+					ImGui::BulbToys_AddyLabel(reinterpret_cast<uintptr_t>(fesm->vtable), " - VTable");
 
 					ImGui::Text("");
 

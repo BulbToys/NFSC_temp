@@ -70,6 +70,7 @@
     <ClCompile Include="src\modules\race_map.cpp" />
     <ClCompile Include="src\modules\road_segments.cpp" />
     <ClCompile Include="src\modules\ai.cpp" />
+    <ClCompile Include="src\modules\chat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

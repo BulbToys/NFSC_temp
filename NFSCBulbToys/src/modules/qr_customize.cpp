@@ -26,7 +26,7 @@ namespace qr_customize
 		auto fesm = reinterpret_cast<NFSC::FEStateManager*>(state_manager);
 
 		// FEQuickRaceStateManager
-		if (fesm->parent && fesm->parent->parent && fesm->parent->parent->vtable == 0x9F8428)
+		if (fesm->parent && fesm->parent->parent && fesm->parent->parent->vtable == reinterpret_cast<void**>(0x9F8428))
 		{
 			auto handle = Read<uint32_t>(Read<uintptr_t>(reinterpret_cast<uintptr_t>(fesm->parent) + 0xD0) + 0x8);
 

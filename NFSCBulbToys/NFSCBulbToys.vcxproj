@@ -66,6 +66,7 @@
     <ClCompile Include="core\minhook\trampoline.c" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\modules\ai.cpp" />
+    <ClCompile Include="src\modules\chat.cpp" />
     <ClCompile Include="src\modules\click_tp.cpp" />
     <ClCompile Include="src\modules\crew.cpp" />
     <ClCompile Include="src\modules\fast_boot_flow.cpp" />

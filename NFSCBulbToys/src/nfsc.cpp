@@ -2,7 +2,7 @@
 
 const char* NFSC::FEStateManager::GetName()
 {
-	switch (this->vtable)
+	switch (reinterpret_cast<uintptr_t>(this->vtable))
 	{
 		case 0x9D2420: return "FEStateManager";
 		case 0x9D2540: return "FEBootFlowStateManager (PURE)";

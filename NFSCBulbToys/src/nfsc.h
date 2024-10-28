@@ -176,7 +176,7 @@ namespace NFSC
 
 	struct FEStateManager
 	{
-		uintptr_t vtable;
+		void** vtable;
 		int current_state;
 		int entry_point;
 		int exit_point;
@@ -505,7 +505,11 @@ namespace NFSC
 
 	FUNC(0x49C020, uintptr_t, __thiscall, FEPlayerCarDB_GetCarRecordByHandle, uintptr_t player_car_db, uint32_t handle);
 
+	FUNC(0x59AFE0, NFSC::FEStateManager*, __thiscall, FEStateManager_FEStateManager, NFSC::FEStateManager* fesm, NFSC::FEStateManager* parent, int entry_point);
+	FUNC(0x59B050, NFSC::FEStateManager*, __thiscall, FEStateManager_Destructor, NFSC::FEStateManager* fesm);
+
 	FUNC(0x579200, void, __thiscall, FEStateManager_ChangeState, uintptr_t state_manager, int current_state);
+	FUNC(0x5A52F0, void, __thiscall, FEStateManager_Exit, uintptr_t state_manager);
 	FUNC(0x5792A0, bool, __thiscall, FEStateManager_IsGameMode, uintptr_t state_manager, int efegamemode);
 	FUNC(0x5A53A0, void, __thiscall, FEStateManager_PopBack, uintptr_t state_manager, int next_state);
 	FUNC(0x593750, void, __thiscall, FEStateManager_Push, uintptr_t state_manager, const char* next_screen, int next_state);
