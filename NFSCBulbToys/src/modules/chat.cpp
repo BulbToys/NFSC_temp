@@ -3,11 +3,75 @@
 
 namespace chat
 {
+	wchar_t* chat = nullptr;
+
+	void AddChat(uintptr_t text_scroller, const wchar_t* txt)
+	{
+		auto strlen_txt = lstrlenW(txt);
+		if (chat)
+		{
+			auto strlen_chat = lstrlenW(chat);
+
+			wchar_t* new_chat = new wchar_t[strlen_chat + 1 + strlen_txt + 1];
+			lstrcpyW(new_chat, chat);
+			lstrcpyW(new_chat + strlen_chat, L"^");
+			lstrcpyW(new_chat + strlen_chat + 1, txt);
+
+			delete[] chat;
+			chat = new_chat;
+		}
+		else
+		{
+			chat = new wchar_t[strlen_txt + 1];
+			lstrcpyW(chat, txt);
+		}
+
+		NFSC::CTextScroller_SetText(text_scroller, chat);
+
+		auto added_lines = Read<int>(text_scroller + 0x34);
+		auto visible_lines = Read<int>(text_scroller + 0x30);
+
+		if (added_lines > visible_lines)
+		{
+			auto top_line = Read<int>(text_scroller + 0x48);
+
+			auto v6 = top_line + 40;
+			if (v6 > 0)
+			{
+				if (visible_lines + v6 >= added_lines)
+				{
+					v6 = added_lines - visible_lines;
+				}
+			}
+			else
+			{
+				v6 = 0;
+			}
+			Write<int>(text_scroller + 0x48, v6);
+
+			reinterpret_cast<void(__thiscall*)(uintptr_t, int)>(0x5A4CA0)(text_scroller, v6);
+
+			auto scroll_bar = Read<uintptr_t>(text_scroller + 0x8);
+			if (scroll_bar)
+			{
+				reinterpret_cast<void(__thiscall*)(uintptr_t, int, int, int, int)>(0x5B2C10)(scroll_bar, visible_lines, added_lines, top_line + 1, top_line + 1);
+			}
+		}
+	}
+
+	void ClearChat(uintptr_t text_scroller)
+	{
+		delete[] chat;
+		chat = nullptr;
+
+		NFSC::CTextScroller_SetText(text_scroller, L"");
+	}
+
 	struct FEChatStateManager : NFSC::FEStateManager
 	{
 		static inline FEChatStateManager* instance = nullptr;
 
-		enum
+		enum // States
 		{
 			NORMAL = 0,
 			TYPING = 1,
@@ -23,6 +87,7 @@ namespace chat
 
 			this->vtable[0] = FEChatStateManager::VecDelDtor;
 			this->vtable[7] = FEChatStateManager::Start;
+			this->vtable[26] = FEChatStateManager::HandleNotifySound;
 			this->vtable[30] = FEChatStateManager::HandlePadAccept;
 			this->vtable[31] = FEChatStateManager::HandlePadBack;
 			this->vtable[58] = FEChatStateManager::HandlePadStart;
@@ -57,6 +122,18 @@ namespace chat
 		static void __fastcall Start(uintptr_t this_)
 		{
 			NFSC::FEStateManager_Push(this_, "FeOnlineMessengerChatPopup.fng", 0);
+		}
+
+		static int __fastcall HandleNotifySound(FEChatStateManager* this_, void* edx, int unk1, int unk2)
+		{
+			if (/*this_->current_state == TYPING && */unk1 == 0x610FB237)
+			{
+				return -1;
+			}
+			else
+			{
+				return unk2;
+			}
 		}
 
 		static void __fastcall HandlePadAccept(FEChatStateManager* this_)
@@ -103,7 +180,7 @@ namespace chat
 				if (chat_popup)
 				{
 					// this->mChatPopup->PackageFilename
-					NFSC::FE_String_Printf(reinterpret_cast<const char*>(chat_popup + 0xC), 0xA828438D, "");
+					NFSC::FE_String_Printf(Read<const char*>(chat_popup + 0xC), 0xA828438D, "");
 				}
 			}
 			else
@@ -142,10 +219,9 @@ namespace chat
 				if (chat_popup)
 				{
 					// this->mChatPopup->PackageFilename
-					NFSC::FE_String_Printf(reinterpret_cast<const char*>(chat_popup + 0xC), 0xA828438D, "");
+					NFSC::FE_String_Printf(Read<const char*>(chat_popup + 0xC), 0xA828438D, "");
 
-					uintptr_t text_scroller = chat_popup + 0x28;
-					reinterpret_cast<void(__thiscall*)(uintptr_t, wchar_t*)>(0x5BCDF0)(text_scroller, txt);
+					AddChat(chat_popup + 0x28, txt);
 				}
 			}
 		}
@@ -202,18 +278,24 @@ namespace chat
 					FEChatStateManager::instance = nullptr;
 				}
 
-				static char chat_text[1300];
-				ImGui::InputText("##ChatText", chat_text, IM_ARRAYSIZE(chat_text));
-				if (ImGui::Button("Set Text"))
+				auto chat_fng = NFSC::BulbToys_GetFeOnlineMessengerChatPopup();
+				if (chat_fng)
 				{
-					auto chat_fng = NFSC::BulbToys_GetFeOnlineMessengerChatPopup();
-					if (chat_fng)
-					{
-						wchar_t chat_text_wide[1300];
-						StringToWideString(chat_text, 1300, chat_text_wide, 1300);
+					uintptr_t text_scroller = chat_fng + 0x28;
 
-						uintptr_t text_scroller = chat_fng + 0x28;
-						reinterpret_cast<void(__thiscall*)(uintptr_t, wchar_t*)>(0x5BCDF0)(text_scroller, chat_text_wide);
+					static char chat_text[40];
+					ImGui::InputText("##ChatText", chat_text, IM_ARRAYSIZE(chat_text));
+					if (ImGui::Button("Add Chat"))
+					{
+						wchar_t chat_text_wide[40];
+						StringToWideString(chat_text, 40, chat_text_wide, 40);
+
+						AddChat(text_scroller, chat_text_wide);
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Clear Chat"))
+					{
+						ClearChat(text_scroller);
 					}
 				}
 			}
@@ -232,14 +314,31 @@ namespace chat
 		return nullptr;
 	}
 
+	HOOK(0x833270, NFSC::NFSMessengerUser*, __fastcall, sub_00833270, void* OnlineThing, void* edx, NFSC::NFSMessengerUser* user, int unk);
+
 	void Init()
 	{
 		Patch<uintptr_t>(0x59FFBD, reinterpret_cast<uintptr_t>(OpenChat) - 0x59FFC1);
+
+		CREATE_HOOK(sub_00833270);
+
+		Patch<uint8_t>(0x5C1470, 0xC3);
 	}
 
 	void End()
 	{
+		Unpatch(0x5C1470);
+
+		Hooks::Destroy(0x833270);
+
 		Unpatch(0x59FFBD);
+	}
+
+	NFSC::NFSMessengerUser* __fastcall sub_00833270_(void* OnlineThing, void* edx, NFSC::NFSMessengerUser* user, int unk)
+	{
+		memset(user, 0, sizeof(NFSC::NFSMessengerUser));
+		strcpy_s(user->displayName, "brokenphilip's bulb hub");
+		return user;
 	}
 }
 

@@ -207,6 +207,15 @@ namespace NFSC
 		size_t size;
 	};
 
+	struct NFSMessengerUser
+	{
+		char a[4];
+		char name[32];
+		char displayName[32];
+		char gameName[128];
+		char b[20];
+	};
+
 	struct Vector2
 	{
 		float x = 0;
@@ -481,6 +490,8 @@ namespace NFSC
 	FUNC(0x48D620, void, , CameraAI_SetAction, int e_view, const char* name);
 
 	FUNC(0x65B000, void, , ChangeLocalPlayerCameraInfo);
+
+	FUNC(0x5BCDF0, void, __thiscall, CTextScroller_SetText, uintptr_t text_scroller, const wchar_t* text);
 
 	FUNC(0x4A0890, char, __stdcall, DALCareer_GetPodiumVehicle, uint32_t* index);
 
