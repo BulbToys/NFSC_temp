@@ -501,6 +501,8 @@ namespace NFSC
 
 	FUNC(0x6F7790, float, __thiscall, DamageVehicle_GetHealth, uintptr_t damage_vehicle);
 
+	FUNC(0x71E030, void, __thiscall, eEffect_HandleMaterialData, uintptr_t e_effect, void* material, int unused);
+
 	FUNC(0x571040, void, , FE_Image_SetTextureHash, uintptr_t fe_image, uint32_t key);
 
 	FUNC(0x5A0250, uintptr_t, , FE_Object_FindObject, const char* package_name, uint32_t key);

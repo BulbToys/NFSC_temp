@@ -71,6 +71,7 @@
     <ClCompile Include="src\modules\road_segments.cpp" />
     <ClCompile Include="src\modules\ai.cpp" />
     <ClCompile Include="src\modules\chat.cpp" />
+    <ClCompile Include="src\modules\fix_71E06B.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
