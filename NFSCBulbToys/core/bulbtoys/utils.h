@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Windows.h>
 #include <unordered_map>
 
@@ -96,6 +97,50 @@ public:
 
 /* ===== Templates ===== */
 
+template <size_t size = 1024>
+bool CopyToClipboard(const char* text, ...)
+{
+	auto mem = GlobalAlloc(GMEM_MOVEABLE, size);
+	if (!mem)
+	{
+		return false;
+	}
+
+	auto ptr = GlobalLock(mem);
+	if (!ptr)
+	{
+		GlobalFree(mem);
+		return false;
+	}
+
+	char buffer[size] { 0 };
+	va_list va;
+	va_start(va, text);
+	vsprintf_s(buffer, size, text, va);
+
+	memcpy(ptr, buffer, size);
+	GlobalUnlock(mem);
+
+	OpenClipboard(NULL);
+	EmptyClipboard();
+	SetClipboardData(CF_TEXT, mem);
+	CloseClipboard();
+
+	// The clipboard calls GlobalFree for us, no need to do it ourselves
+	return true;
+}
+
+template <size_t size = 1024>
+void Error(const char* message, ...)
+{
+	char buffer[size] { 0 };
+	va_list va;
+	va_start(va, message);
+	vsprintf_s(buffer, size, message, va);
+
+	MessageBoxA(NULL, buffer, PROJECT_NAME, MB_ICONERROR | MB_SYSTEMMODAL);
+}
+
 template <typename T>
 inline T Read(uintptr_t address)
 {
@@ -151,13 +196,13 @@ inline void PatchArray(uintptr_t address, std::initializer_list<T> list)
 
 /* ===== Functions ===== */
 
-void Error(const char* message, ...);
-
-void PatchNOP(uintptr_t address, int count = 1);
+void PatchCall(uintptr_t address, void* func);
 
 // Recommended to ONLY use for __declspec(naked) inline __asm only functions
 // NOTE: The jump instruction is 5 bytes
 void PatchJMP(uintptr_t address, void* asm_func, size_t patch_len = 5);
+
+void PatchNOP(uintptr_t address, int count = 1);
 
 void Unpatch(uintptr_t address, bool force_unpatch = true);
 

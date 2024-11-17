@@ -32,6 +32,7 @@
     <ClInclude Include="core\mini\ini.h" />
     <ClInclude Include="core\bulbtoys.h" />
     <ClInclude Include="core\bulbtoys\git.h" />
+    <ClInclude Include="core\bulbtoys\version.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp" />
@@ -72,6 +73,7 @@
     <ClCompile Include="src\modules\ai.cpp" />
     <ClCompile Include="src\modules\chat.cpp" />
     <ClCompile Include="src\modules\fix_71E06B.cpp" />
+    <ClCompile Include="core\bulbtoys\version.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

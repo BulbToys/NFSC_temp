@@ -12,8 +12,33 @@ BOOL APIENTRY DllMain(HMODULE instance, DWORD reason, LPVOID)
 		{
 			BulbToys::SetupParams params;
 			params.instance = instance;
-			params.GetDevice = +[](){
-				return Read<IDirect3DDevice9*>(0xAB0ABC);
+			params.GetD3D9Device = +[]()
+			{
+				return Read<LPVOID>(0xAB0ABC);
+			};
+			params.GetDI8KeyboardDevice = +[]()
+			{
+				LPVOID device = nullptr;
+
+				auto keyboard = Read<uintptr_t>(0xA986F4);
+				if (keyboard)
+				{
+					device = Read<LPVOID>(keyboard + 0x468);
+				}
+
+				return device;
+			};
+			params.GetDI8MouseDevice = +[]()
+			{
+				LPVOID device = nullptr;
+
+				auto mouse = Read<uintptr_t>(0xA986FC);
+				if (mouse)
+				{
+					device = Read<LPVOID>(mouse + 0x468);
+				}
+
+				return device;
 			};
 
 			// NOTE: NFSCO will not support ASI plugins
