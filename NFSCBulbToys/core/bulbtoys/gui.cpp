@@ -361,14 +361,17 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
 
 LRESULT CALLBACK GUI::WndProc(WNDPROC original_wndproc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	// NFSC: Show or hide the cursor depending on whether we have any windows open
-	if (IWindow::List().size() > 0)
+	// NFSC: If not NFSCO, show or hide the cursor depending on whether we have any windows open
+	if (Read<uint32_t>(0x692539) != 28)
 	{
-		while (ShowCursor(true) < 0);
-	}
-	else
-	{
-		while (ShowCursor(false) >= 0);
+		if (IWindow::List().size() > 0)
+		{
+			while (ShowCursor(true) < 0);
+		}
+		else
+		{
+			while (ShowCursor(false) >= 0);
+		}
 	}
 
 	auto result = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);

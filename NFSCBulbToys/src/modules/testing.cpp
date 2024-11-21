@@ -69,6 +69,49 @@ namespace testing
 				}
 			}
 
+			if (ImGui::BulbToys_Menu("Test Packages"))
+			{
+				static char* packages[115]{ nullptr };
+				if (!packages[0])
+				{
+					for (int i = 0; i < 115; i++)
+					{
+						packages[i] = *reinterpret_cast<char**>(0xA5E230 + 0x8 * i);
+					}
+				}
+
+				static int package = 0;
+				ImGui::BulbToys_ListBox("Packages:", "##Packages", &package, packages, 115);
+
+				static char package_status[128] = "Awaiting package push...";
+
+				if (ImGui::Button("Push"))
+				{
+					if (NFSC::cFEng_PushNoControlPackage(NFSC::BulbToys_GetCFEng(), packages[package], 169))
+					{
+						MYPRINTF(package_status, 128, "Package '%s' was pushed.", packages[package]);
+					}
+					else
+					{
+						MYPRINTF(package_status, 128, "Package '%s' was NOT pushed!", packages[package]);
+					}
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Pop"))
+				{
+					if (NFSC::cFEng_PopNoControlPackage(NFSC::BulbToys_GetCFEng(), packages[package]))
+					{
+						MYPRINTF(package_status, 128, "Package '%s' was popped.", packages[package]);
+					}
+					else
+					{
+						MYPRINTF(package_status, 128, "Package '%s' was NOT popped!", packages[package]);
+					}
+				}
+
+				ImGui::Text(package_status);
+			}
+
 			if (ImGui::BulbToys_Menu("Testing"))
 			{
 				// Replace Statistics with Template

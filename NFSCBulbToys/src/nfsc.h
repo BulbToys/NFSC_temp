@@ -313,6 +313,8 @@ namespace NFSC
 	}
 
 	// Globals
+	inline uintptr_t BulbToys_GetCFEng() { return Read<uintptr_t>(0xA97A78); }
+
 	inline NFSC::FEStateManager* BulbToys_GetFEManager() { return Read<NFSC::FEStateManager*>(0xA97A7C); }
 
 	inline int BulbToys_GetGameFlowState() { return Read<int>(0xA99BBC); }
@@ -489,6 +491,9 @@ namespace NFSC
 
 	FUNC(0x48D620, void, , CameraAI_SetAction, int e_view, const char* name);
 
+	FUNC(0x5983B0, bool, __thiscall, cFEng_PopNoControlPackage, uintptr_t c_feng, const char* package_name);
+	FUNC(0x572260, uintptr_t, __thiscall, cFEng_PushNoControlPackage, uintptr_t c_feng, const char* package_name, uint8_t level);
+
 	FUNC(0x65B000, void, , ChangeLocalPlayerCameraInfo);
 
 	FUNC(0x5BCDF0, void, __thiscall, CTextScroller_SetText, uintptr_t text_scroller, const wchar_t* text);
@@ -517,10 +522,12 @@ namespace NFSC
 	FUNC(0x583B10, void, , FE_String_SetString, uintptr_t object, const wchar_t* wide_string);
 
 	FUNC(0x5CDEA0, void, , FEDialogScreen_ShowDialog, const char* message, const char* button1, const char* button2, const char* button3);
-	FUNC(0x5C9DB0, void, , FEDialogScreen_ShowKeyboard, unsigned int hash, int keyboard_mode, uintptr_t unk1, uintptr_t unk2, uint32_t unk3, char unk4, uint32_t unk5);
+	FUNC(0x5C9DB0, void, , FEDialogScreen_ShowKeyboard, unsigned int hash, int keyboard_mode, const char* input_text, const char* title, uint32_t max_length,
+		bool dont_use_dialog_screen, uint32_t fekbtextbox_objbyhash);
 	FUNC(0x5CF440, void, , FEDialogScreen_ShowOK, const char* message);
 
 	FUNC(0x572B90, uintptr_t, __thiscall, FEManager_GetUserProfile, NFSC::FEStateManager* fe_manager, int index);
+	FUNC(0x5B02B0, void, __thiscall, FEManager_OnPauseRequest, NFSC::FEStateManager* fe_manager, int which_menu, bool force_pause_request, int player_index);
 
 	FUNC(0x5EC760, uintptr_t, __thiscall, FEObject_FindScript, uintptr_t fe_object, unsigned int hash);
 	FUNC(0x5F3610, void, __thiscall, FEObject_SetScript, uintptr_t fe_object, uintptr_t fe_script, bool force);
@@ -537,6 +544,7 @@ namespace NFSC
 	FUNC(0x5792A0, bool, __thiscall, FEStateManager_IsGameMode, uintptr_t state_manager, int efegamemode);
 	FUNC(0x5A53A0, void, __thiscall, FEStateManager_PopBack, uintptr_t state_manager, int next_state);
 	FUNC(0x593750, void, __thiscall, FEStateManager_Push, uintptr_t state_manager, const char* next_screen, int next_state);
+	FUNC(0x589060, void, __thiscall, FEStateManager_PushChildManager, uintptr_t state_manager, uintptr_t state_manager_child, int current_state);
 	FUNC(0x579C10, void, __thiscall, FEStateManager_ShowDialog, uintptr_t state_manager, int next_state);
 	FUNC(0x59B140, void, __thiscall, FEStateManager_Switch, uintptr_t state_manager, const char* next_screen, uint32_t leave_message, int next_state, int screens_to_pop);
 	FUNC(0x5A52B0, void, __thiscall, FEStateManager_SwitchChildManager, uintptr_t state_manager, uintptr_t state_manager_child, int next_state, int screens_to_pop);
@@ -614,6 +622,8 @@ namespace NFSC
 	FUNC(0x6C6FF0, NFSC::Vector3*, __thiscall, RigidBody_GetPosition, uintptr_t rigid_body);
 	FUNC(0x6E8210, void, __thiscall, RigidBody_SetPosition, uintptr_t rigid_body, NFSC::Vector3* position);
 
+	FUNC(0x50C370, void, , SetSoundControlState, bool disabled, int sound_control_state, const char* debug_name);
+
 	FUNC(0x761550, float, , Sim_DistanceToCamera, NFSC::Vector3* target);
 
 	FUNC(0x6ECE10, uintptr_t, __thiscall, Sim_Effect_vecDelDtor, uintptr_t sim_effect, bool should_free);
@@ -671,6 +681,58 @@ namespace NFSC
 	inline bool BulbToys_IsNFSCO() { return Read<uint32_t>(0x692539) == 28; }
 
 	inline bool BulbToys_IsPlayerLocal(uintptr_t player) { return Read<uintptr_t>(player) == 0x9EC8C0; /* RecordablePlayer::`vftable'{for `IPlayer'} */ }
+
+	/* ===== EVENT SYSTEM ===== */
+
+	namespace EventSys
+	{
+		struct Event
+		{
+			uintptr_t vtable;
+			uint32_t event_size;
+		};
+
+		struct DynamicData
+		{
+			Vector4 position;
+			Vector4 vector;
+			Vector4 velocity;
+			Vector4 angular_velocity;
+			uintptr_t w_trigger;
+			int trigger_stimulus;
+			uint32_t* simable_handle;
+			uint32_t* activity_handle;
+			uint32_t world_id;
+			uint32_t* model_handle;
+			uint32_t event_seq_engine;
+			uint32_t event_seq_system;
+			uint32_t event_seq_state;
+		};
+
+		struct StaticData
+		{
+			uint32_t event_id;
+		};
+
+		struct FieldDef
+		{
+			uint32_t type;
+			uint32_t name;
+			uint16_t properties;
+			uint16_t size;
+		};
+
+		struct EventDef
+		{
+			uint32_t id;
+			const char* name;
+			uint32_t properties;
+			Event* (__cdecl* Construct)(StaticData*, DynamicData*);
+			uint32_t static_fields_count;
+			FieldDef* static_fields;
+			uint32_t static_data_size;
+		};
+	}
 }
 
 /* ===== I M G U I ===== */
