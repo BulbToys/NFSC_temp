@@ -88,6 +88,8 @@ void GUI::Overlay::Render()
 
 GUI::GUI(LPVOID device, HWND window)
 {
+	GUI::instance = this;
+
 	this->device = device;
 
 	ImGui::CreateContext();
@@ -209,6 +211,8 @@ GUI::~GUI()
 	ImGui::DestroyContext();
 	
 	IWindow::DestroyAll();
+
+	GUI::instance = nullptr;
 }
 
 void GUI::Render()
@@ -257,37 +261,58 @@ void GUI::Render()
 
 void GUI::PatchVTables(PatchMode pm)
 {
+	auto EndScene = PtrVirtual<42>(reinterpret_cast<uintptr_t>(this->device));
+	auto Reset = PtrVirtual<16>(reinterpret_cast<uintptr_t>(this->device));
+	auto BeginStateBlock = PtrVirtual<60>(reinterpret_cast<uintptr_t>(this->device));
+
+	// Usually not necessary, but some things (like the Steam overlay) mess with the protection
+	Unprotect u1(EndScene, 4);
+	Unprotect u2(Reset, 4);
+	Unprotect u3(BeginStateBlock, 4);
+
 	if (pm == PatchMode::Unpatch || pm == PatchMode::Repatch)
 	{
-		Unpatch(PtrVirtual<60>(reinterpret_cast<uintptr_t>(this->device)));
+		Unpatch(BeginStateBlock);
 
-		Unpatch(PtrVirtual<16>(reinterpret_cast<uintptr_t>(this->device)));
-		Unpatch(PtrVirtual<42>(reinterpret_cast<uintptr_t>(this->device)));
+		Unpatch(Reset);
+		Unpatch(EndScene);
 	}
 
 	if (pm == PatchMode::Patch || pm == PatchMode::Repatch)
 	{
-		CREATE_VTABLE_PATCH(PtrVirtual<42>(reinterpret_cast<uintptr_t>(this->device)), ID3DDevice9_EndScene);
-		CREATE_VTABLE_PATCH(PtrVirtual<16>(reinterpret_cast<uintptr_t>(this->device)), ID3DDevice9_Reset);
+		CREATE_VTABLE_PATCH(EndScene, ID3DDevice9_EndScene);
+		CREATE_VTABLE_PATCH(Reset, ID3DDevice9_Reset);
 
-		CREATE_VTABLE_PATCH(PtrVirtual<60>(reinterpret_cast<uintptr_t>(this->device)), ID3DDevice9_BeginStateBlock);
+		CREATE_VTABLE_PATCH(BeginStateBlock, ID3DDevice9_BeginStateBlock);
 	}
 }
 
-HRESULT __stdcall GUI::ID3DDevice9_EndScene_(LPVOID device)
+HRESULT APIENTRY GUI::ID3DDevice9_EndScene_(LPVOID device)
 {
-	auto result = GUI::ID3DDevice9_EndScene(device);
-
 	auto this_ = GUI::instance;
 	if (!this_)
 	{
 		Error("GUI::ID3DDevice9_EndScene_ called but no GUI instance.");
-		return result;
+		DIE();
+		return GUI::ID3DDevice9_EndScene(device);
 	}
 
 	if (device != this_->device)
 	{
-		return result;
+		return GUI::ID3DDevice9_EndScene(device);
+	}
+
+	// NFSC: If not NFSCO, show or hide the cursor depending on whether we have any windows open
+	if (Read<uint32_t>(0x692539) != 28)
+	{
+		if (IWindow::List().size() > 0)
+		{
+			while (ShowCursor(true) < 0);
+		}
+		else
+		{
+			while (ShowCursor(false) >= 0);
+		}
 	}
 
 	ImGui_ImplDX9_NewFrame();
@@ -305,22 +330,23 @@ HRESULT __stdcall GUI::ID3DDevice9_EndScene_(LPVOID device)
 		IWindow::List().push_back(window);
 	}
 
-	// TODO: frame count fixes?
+	// TODO: If called multiple times per frame, FPS counter will be incorrect. FIXME FIXME FIXME
 	this_->Render();
 
 	ImGui::EndFrame();
 	ImGui::Render();
 	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
-	return result;
+	return GUI::ID3DDevice9_EndScene(device);
 }
 
-HRESULT __stdcall GUI::ID3DDevice9_Reset_(LPVOID device, LPVOID params)
+HRESULT APIENTRY GUI::ID3DDevice9_Reset_(LPVOID device, LPVOID params)
 {
 	auto this_ = GUI::instance;
 	if (!this_)
 	{
 		Error("GUI::ID3DDevice9_Reset_ called but no GUI instance.");
+		DIE();
 		return GUI::ID3DDevice9_Reset(device, params);
 	}
 
@@ -332,10 +358,11 @@ HRESULT __stdcall GUI::ID3DDevice9_Reset_(LPVOID device, LPVOID params)
 	ImGui_ImplDX9_InvalidateDeviceObjects();
 	const auto result = GUI::ID3DDevice9_Reset(device, params);
 	ImGui_ImplDX9_CreateDeviceObjects();
+
 	return result;
 }
 
-HRESULT __stdcall GUI::ID3DDevice9_BeginStateBlock_(LPVOID device)
+HRESULT APIENTRY GUI::ID3DDevice9_BeginStateBlock_(LPVOID device)
 {
 	auto result = GUI::ID3DDevice9_BeginStateBlock(device);
 
@@ -343,6 +370,7 @@ HRESULT __stdcall GUI::ID3DDevice9_BeginStateBlock_(LPVOID device)
 	if (!this_)
 	{
 		Error("GUI::ID3DDevice9_BeginStateBlock_ called but no GUI instance.");
+		DIE();
 		return result;
 	}
 
@@ -361,50 +389,79 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
 
 LRESULT CALLBACK GUI::WndProc(WNDPROC original_wndproc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	// NFSC: If not NFSCO, show or hide the cursor depending on whether we have any windows open
-	if (Read<uint32_t>(0x692539) != 28)
+	auto io = IO::Get();
+	auto& imgui_io = ImGui::GetIO();
+
+	// Keyboard input messages
+	if (uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
 	{
-		if (IWindow::List().size() > 0)
+		// Are we allowed to read keyboard input from WndProc?
+		if (io->KeyboardInputAllowed(IO::InputMethod::WindowProcedure))
 		{
-			while (ShowCursor(true) < 0);
+			// Pass keyboard input to ImGui
+			auto result = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+			if (result)
+			{
+				return result;
+			}
 		}
-		else
+
+		// If ImGui is requesting to use our keyboard, block the input further down the window procedure chain
+		if (imgui_io.WantCaptureKeyboard)
 		{
-			while (ShowCursor(false) >= 0);
+			return 0;
 		}
 	}
 
-	auto result = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-	if (result)
+	// Mouse input messages
+	else if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
 	{
-		return result;
+		// Are we allowed to read mouse input from WndProc?
+		if (io->MouseInputAllowed(IO::InputMethod::WindowProcedure))
+		{
+			// Pass mouse input to ImGui
+			auto result = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+			if (result)
+			{
+				return result;
+			}
+		}
+
+		// If ImGui is requesting to use our mouse, block the input further down the window procedure chain
+		if (imgui_io.WantCaptureMouse)
+		{
+			return 0;
+		}
 	}
 
-	auto& io = ImGui::GetIO();
-	if (io.WantCaptureKeyboard && uMsg >= WM_KEYFIRST && uMsg <= WM_KEYLAST)
+	// All other messages
+	else
 	{
-		return 0;
-	}
-	if (io.WantCaptureMouse && uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
-	{
-		return 0;
+		// Pass miscellaneous messages to ImGui
+		auto result = ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+		if (result)
+		{
+			return result;
+		}
 	}
 
-	return CallWindowProc(original_wndproc, hWnd, uMsg, wParam, lParam);
+	// In all the above cases, keep calling our own window procedure until ImGui's window procedure returns TRUE
+	return CallWindowProcA(original_wndproc, hWnd, uMsg, wParam, lParam);
 }
 
-GUI* GUI::Get(LPVOID device, HWND window)
+void GUI::Init(LPVOID device, HWND window)
 {
-	if (!GUI::instance && device && window)
-	{
-		GUI::instance = new GUI(device, window);
-	}
+	ASSERT(!GUI::instance);
+	new GUI(device, window);
+}
+
+GUI* GUI::Get()
+{
 	return GUI::instance;
 }
 
 void GUI::End()
 {
-	GUI::instance = nullptr;
 	delete this;
 }
 
