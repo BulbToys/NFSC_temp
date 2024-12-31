@@ -682,6 +682,12 @@ namespace NFSC
 
 	inline bool BulbToys_IsPlayerLocal(uintptr_t player) { return Read<uintptr_t>(player) == 0x9EC8C0; /* RecordablePlayer::`vftable'{for `IPlayer'} */ }
 
+	inline float BulbToys_ToAngle(Vector3& fwd_vec)
+	{
+		constexpr float deg_rad = (180.0f / 3.141592653589793238463f);
+		return atan2(fwd_vec.x, -fwd_vec.z) * deg_rad + 180.0f;
+	}
+
 	/* ===== EVENT SYSTEM ===== */
 
 	namespace EventSys
@@ -746,5 +752,13 @@ namespace ImGui
 
 	void NFSC_Location(const char* label, const char* id, float* location);
 
-	void NFSC_OverlayText(ImDrawList* draw_list, ImVec2& position, ImVec4& color, const ImVec4* bg_color = nullptr, const char* fmt = nullptr, ...);
+	void NFSC_Overlay_Cuboid(ImDrawList* draw_list, NFSC::Vector3& position, NFSC::Vector3& dimension, NFSC::Vector3& fwd_vec, ImVec4& color, float thickness);
+
+	void NFSC_Overlay_Text(ImDrawList* draw_list, NFSC::Vector3& world_position, ImVec4& color, const ImVec4* bg_color = nullptr, const char* fmt = nullptr, ...);
+
+	void NFSC_Overlay_Text(ImDrawList* draw_list, ImVec2& screen_position, ImVec4& color, const ImVec4* bg_color = nullptr, const char* fmt = nullptr, ...);
+
+	void NFSC_Overlay_TextV(ImDrawList* draw_list, ImVec2& position, ImVec4& color, const ImVec4* bg_color, const char* fmt, va_list args);
+
+	void NFSC_Overlay_VehicleInfo(ImDrawList* draw_list, uintptr_t vehicle, int vehicle_list_type, ImVec4& color);
 }

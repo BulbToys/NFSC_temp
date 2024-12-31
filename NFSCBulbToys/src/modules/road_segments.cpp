@@ -27,9 +27,9 @@ namespace road_segments
 
 				ImGui::Separator(); 
 
-				ImGui::BulbToys_SliderFloat("Max Distance", "##RoadSergmentsMaxDistance", &road_segments::max_distance, 64, 4096);
-				ImGui::BulbToys_SliderFloat("Max", "##RoadSergmentsMax", &road_segments::max, 4, 16);
-				ImGui::BulbToys_SliderFloat("Min", "##RoadSergmentsMin", &road_segments::min, 0, 4);
+				ImGui::BulbToys_SliderFloat("Max Distance", "##RoadSegmentsMaxDistance", &road_segments::max_distance, 64, 4096);
+				ImGui::BulbToys_SliderFloat("Max", "##RoadSegmentsMax", &road_segments::max, 4, 16);
+				ImGui::BulbToys_SliderFloat("Min", "##RoadSegmentsMin", &road_segments::min, 0, 4);
 
 				ImGui::EndDisabled();
 			}
@@ -84,15 +84,8 @@ namespace road_segments
 
 							if (road_segments::draw_indexes)
 							{
-								NFSC::Vector3 screen_idx { (world[0].x + world[1].x) / 2, (world[0].y + world[1].y) / 2, ((world[0].z + world[1].z) / 2) };
-
-								NFSC::BulbToys_GetScreenPosition(screen_idx, screen_idx);
-
-								if (screen_idx.z < 1.0f)
-								{
-									ImVec2 pos(screen_idx.x, screen_idx.y);
-									ImGui::NFSC_OverlayText(draw_list, pos, color, nullptr, "%d", i);
-								}
+								NFSC::Vector3 pos { (world[0].x + world[1].x) / 2, (world[0].y + world[1].y) / 2, ((world[0].z + world[1].z) / 2) };
+								ImGui::NFSC_Overlay_Text(draw_list, pos, color, nullptr, "%d", i);
 							}
 						}
 					}

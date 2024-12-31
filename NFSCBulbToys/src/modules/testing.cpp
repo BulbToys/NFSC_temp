@@ -81,7 +81,7 @@ namespace testing
 				}
 
 				static int package = 0;
-				ImGui::BulbToys_ListBox("Packages:", "##Packages", &package, packages, 115);
+				ImGui::BulbToys_ListBox("Packages:", "##TestPackages", &package, packages, 115);
 
 				static char package_status[128] = "Awaiting package push...";
 

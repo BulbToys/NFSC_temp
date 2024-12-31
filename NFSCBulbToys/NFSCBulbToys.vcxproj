@@ -78,6 +78,7 @@
     <ClCompile Include="src\modules\movies.cpp" />
     <ClCompile Include="src\modules\qr_customize.cpp" />
     <ClCompile Include="src\modules\road_segments.cpp" />
+    <ClCompile Include="src\modules\sixth_sense.cpp" />
     <ClCompile Include="src\modules\state_managers.cpp" />
     <ClCompile Include="src\modules\testing.cpp" />
     <ClCompile Include="src\modules\player_trail.cpp" />
