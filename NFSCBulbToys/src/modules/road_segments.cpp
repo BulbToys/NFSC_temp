@@ -27,9 +27,12 @@ namespace road_segments
 
 				ImGui::Separator(); 
 
-				ImGui::BulbToys_SliderFloat("Max Distance", "##RoadSegmentsMaxDistance", &road_segments::max_distance, 64, 4096);
-				ImGui::BulbToys_SliderFloat("Max", "##RoadSegmentsMax", &road_segments::max, 4, 16);
-				ImGui::BulbToys_SliderFloat("Min", "##RoadSegmentsMin", &road_segments::min, 0, 4);
+				ImGui::Text("Max Distance:");
+				ImGui::SliderFloat("##RoadSegmentsMaxDistance", &road_segments::max_distance, 64, 4096);
+				ImGui::Text("Max:");
+				ImGui::SliderFloat("##RoadSegmentsMax", &road_segments::max, 4, 16);
+				ImGui::Text("Min:");
+				ImGui::SliderFloat("##RoadSegmentsMin", &road_segments::min, 0, 4);
 
 				ImGui::EndDisabled();
 			}

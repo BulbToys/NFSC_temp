@@ -217,10 +217,12 @@ namespace race_map
 				ImGui::Checkbox("Bezier Limit", &use_limit);
 
 				static float x_offs = .0f;
-				ImGui::BulbToys_SliderFloat("X Offset", "##FLMXOffset", &x_offs, -10000, +10000);
+				ImGui::Text("X offset:");
+				ImGui::SliderFloat("##FLMXOffset", &x_offs, -10000, +10000);
 
 				static float y_offs = .0f;
-				ImGui::BulbToys_SliderFloat("Y Offset", "##FLMYOffset", &y_offs, -10000, +10000);
+				ImGui::Text("Y offset:");
+				ImGui::SliderFloat("##FLMYOffset", &y_offs, -10000, +10000);
 
 				static int bezier_count = 0;
 				if (ImGui::Button("Generate FLM"))
