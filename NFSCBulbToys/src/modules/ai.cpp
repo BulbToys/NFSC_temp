@@ -35,10 +35,18 @@ namespace ai
 		{
 			if (ImGui::BulbToys_Menu("AI"))
 			{
-				ImGui::Checkbox("Next encounter vehicle:", &ai::encounter::overridden);
+				ImGui::Checkbox("Override NeedsEncounter:", &ai::needs_encounter::overridden);
+				ImGui::SameLine();
+				ImGui::Checkbox("##AIOverrideNeedsEncounter", &ai::needs_encounter::value);
+
+				ImGui::Checkbox("Force next encounter vehicle:", &ai::encounter::overridden);
 				ImGui::InputText("##NEVehicle", ai::encounter::vehicle, IM_ARRAYSIZE(ai::encounter::vehicle));
 
 				ImGui::Separator();
+
+				ImGui::Checkbox("Override NeedsTraffic:", &ai::needs_traffic::overridden);
+				ImGui::SameLine();
+				ImGui::Checkbox("##AIOverrideNeedsTraffic", &ai::needs_traffic::value);
 
 				ImGui::Text("Traffic crash speed:");
 				ImGui::SliderFloat("##AITrafficCrashSpeed", reinterpret_cast<float*>(0x9C1790), 1.0, 1000.0);
@@ -52,6 +60,14 @@ namespace ai
 
 				ImGui::Separator();
 
+				const char* bosses[] = { "None", "Angie", "Darius", "Wolf", "Kenji", "Neville" };
+				static int boss_override = 0;
+				ImGui::Text("Race boss override:");
+				if (ImGui::ListBox("##AIBossOverride", &boss_override, bosses, IM_ARRAYSIZE(bosses)))
+				{
+					Write<int>(0xA9E66C, boss_override);
+				}
+
 				static int racer_postrace_type = static_cast<int>(NFSC::AIGoal::RACER);
 				ImGui::Text("Racer post-race type:");
 				if (ImGui::ListBox("##AIRacerPostRaceType", &racer_postrace_type, NFSC::ai_goals, IM_ARRAYSIZE(NFSC::ai_goals)))
@@ -61,38 +77,12 @@ namespace ai
 
 				ImGui::Separator();
 
-				// Boss override
-				const char* bosses[] = { "None", "Angie", "Darius", "Wolf", "Kenji", "Neville" };
-				static int boss_override = 0;
-				ImGui::Text("Boss override:");
-				if (ImGui::ListBox("##AIBossOverride", &boss_override, bosses, IM_ARRAYSIZE(bosses)))
-				{
-					Write<int>(0xA9E66C, boss_override);
-				}
-
-				ImGui::Separator();
-
-				// Override NeedsEncounter
-				ImGui::Checkbox("Override NeedsEncounter:", &ai::needs_encounter::overridden);
-				ImGui::SameLine();
-				ImGui::Checkbox("##AIOverrideNeedsEncounter", &ai::needs_encounter::value);
-
-				// Override NeedsTraffic
-				ImGui::Checkbox("Override NeedsTraffic:", &ai::needs_traffic::overridden);
-				ImGui::SameLine();
-				ImGui::Checkbox("##AIOverrideNeedsTraffic", &ai::needs_traffic::value);
-
-				ImGui::Separator();
-
-				// Override PursueRacers
 				ImGui::Checkbox("Override PursueRacers:", &ai::pursue_racers::overridden);
 				ImGui::SameLine();
 				ImGui::Checkbox("##AIOverridePursueRacers", &ai::pursue_racers::value);
 
-				// Disable cops
 				ImGui::Checkbox("Disable cops", reinterpret_cast<bool*>(0xA83A50));
 
-				// Disable busting
 				static bool no_busted = false;
 				if (ImGui::Checkbox("Disable busting", &no_busted))
 				{
@@ -114,7 +104,6 @@ namespace ai
 					}
 				}
 
-				// Heat level
 				static float heat_level = 1;
 				uintptr_t my_simable = 0;
 				if (NFSC::BulbToys_GetMyVehicle(nullptr, &my_simable))
@@ -125,12 +114,13 @@ namespace ai
 				ImGui::Text("Heat level:");
 				if (ImGui::SliderFloat("##AIHeatLevel", &heat_level, 1.f, 10.f))
 				{
+					// Game_SetWorldHeat
 					reinterpret_cast<void(*)(float)>(0x65C550)(heat_level);
 				}
 
-				// Start pursuit
 				if (ImGui::Button("Start pursuit"))
 				{
+					// Game_ForcePursuitStart
 					reinterpret_cast<void(*)(int)>(0x651430)(1);
 				}
 			}
