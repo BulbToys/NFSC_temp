@@ -56,15 +56,25 @@ namespace sixth_sense
 					pos = *NFSC::RigidBody_GetPosition(my_rigid_body);
 					NFSC::RigidBody_GetForwardVector(my_rigid_body, &fwd_vec);
 
-					ImGui::Text("RigidBody coords:");
-					ImGui::Text("- Position: { %.2f, %.2f, %.2f }", pos.x, pos.y, pos.z);
-					ImGui::Text("- Rotation: { %.2f, %.2f, %.2f } (XZ: %.2f)", fwd_vec.x, fwd_vec.y, fwd_vec.z, NFSC::BulbToys_ToAngle(fwd_vec));
+					if (ImGui::BulbToys_Overlay_BeginTable("RigidBodyCoords"))
+					{
+						ImGui::Text("RigidBody coords:");
+						ImGui::Text("- Position: { %.2f, %.2f, %.2f }", pos.x, pos.y, pos.z);
+						ImGui::Text("- Rotation: { %.2f, %.2f, %.2f } (XZ: %.2f)", fwd_vec.x, fwd_vec.y, fwd_vec.z, NFSC::BulbToys_ToAngle(fwd_vec));
+
+						ImGui::BulbToys_Overlay_EndTable();
+					}
 				}
 				if (NFSC::BulbToys_GetDebugCamVectors(&pos, &fwd_vec))
 				{
-					ImGui::Text("DebugCam coords:");
-					ImGui::Text("- Position: { %.2f, %.2f, %.2f }", pos.x, pos.y, pos.z);
-					ImGui::Text("- Rotation: { %.2f, %.2f, %.2f } (XZ: %.2f)", fwd_vec.x, fwd_vec.y, fwd_vec.z, NFSC::BulbToys_ToAngle(fwd_vec));
+					if (ImGui::BulbToys_Overlay_BeginTable("DebugCamCoords"))
+					{
+						ImGui::Text("DebugCam coords:");
+						ImGui::Text("- Position: { %.2f, %.2f, %.2f }", pos.x, pos.y, pos.z);
+						ImGui::Text("- Rotation: { %.2f, %.2f, %.2f } (XZ: %.2f)", fwd_vec.x, fwd_vec.y, fwd_vec.z, NFSC::BulbToys_ToAngle(fwd_vec));
+
+						ImGui::BulbToys_Overlay_EndTable();
+					}
 				}
 			}
 
