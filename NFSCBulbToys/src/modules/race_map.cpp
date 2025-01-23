@@ -117,14 +117,14 @@ namespace race_map
 						points[j].y = scaled[0] * points[j].y + scaled[1];
 
 						// account for world map scale
-						if (NFSC::BulbToys_IsNFSCO())
+						/*if (NFSC::BulbToys_IsNFSCO())
 						{
 							points[j].x -= 1247.f;
 						}
 						else
-						{
+						{*/
 							points[j].x -= 951.f;
-						}
+						//}
 						points[j].y -= 1411.f;
 
 						// apply our own offsets

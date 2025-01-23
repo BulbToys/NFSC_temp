@@ -150,6 +150,8 @@ namespace sixth_sense
 		{
 			return new SixthSenseOverlay();
 		}
+
+		return nullptr;
 	}
 
 	HOOK(0x7AEFD0, void, __fastcall, CarRenderConn_UpdateIcon, uintptr_t car_render_conn, uintptr_t edx, uintptr_t pkt);
