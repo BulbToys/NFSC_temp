@@ -36,10 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp" />
-    <ClCompile Include="src\modules\state_managers.cpp" />
     <ClCompile Include="src\nfsc.cpp" />
-    <ClCompile Include="src\modules\fast_boot_flow.cpp" />
-    <ClCompile Include="src\modules\player_trail.cpp" />
     <ClCompile Include="core\bulbtoys\gui.cpp" />
     <ClCompile Include="core\bulbtoys\hooks.cpp" />
     <ClCompile Include="core\bulbtoys\io.cpp" />
@@ -60,22 +57,25 @@
     <ClCompile Include="core\minhook\buffer.c" />
     <ClCompile Include="core\minhook\hook.c" />
     <ClCompile Include="core\minhook\trampoline.c" />
-    <ClCompile Include="src\modules\movies.cpp" />
-    <ClCompile Include="src\modules\click_tp.cpp" />
+    <ClCompile Include="core\bulbtoys\version.cpp" />
+    <ClCompile Include="src\modules\fast_boot_flow.cpp" />
+    <ClCompile Include="src\modules\photo_mode.cpp" />
     <ClCompile Include="src\modules\world.cpp" />
-    <ClCompile Include="src\modules\frontend.cpp" />
-    <ClCompile Include="src\modules\testing.cpp" />
-    <ClCompile Include="src\modules\crew.cpp" />
+    <ClCompile Include="src\modules\ai.cpp" />
     <ClCompile Include="src\modules\camera.cpp" />
+    <ClCompile Include="src\modules\chat.cpp" />
+    <ClCompile Include="src\modules\click_tp.cpp" />
+    <ClCompile Include="src\modules\crew.cpp" />
+    <ClCompile Include="src\modules\fix_71E06B.cpp" />
+    <ClCompile Include="src\modules\frontend.cpp" />
+    <ClCompile Include="src\modules\movies.cpp" />
+    <ClCompile Include="src\modules\player_trail.cpp" />
     <ClCompile Include="src\modules\qr_customize.cpp" />
     <ClCompile Include="src\modules\race_map.cpp" />
     <ClCompile Include="src\modules\road_segments.cpp" />
-    <ClCompile Include="src\modules\ai.cpp" />
-    <ClCompile Include="src\modules\chat.cpp" />
-    <ClCompile Include="src\modules\fix_71E06B.cpp" />
-    <ClCompile Include="core\bulbtoys\version.cpp" />
     <ClCompile Include="src\modules\sixth_sense.cpp" />
-    <ClCompile Include="src\modules\photo_mode.cpp" />
+    <ClCompile Include="src\modules\state_managers.cpp" />
+    <ClCompile Include="src\modules\testing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

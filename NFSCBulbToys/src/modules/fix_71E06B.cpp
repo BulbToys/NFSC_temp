@@ -41,7 +41,7 @@ namespace fix_71E06B
 
 	void __fastcall eEffect_HandleMaterialData(uintptr_t e_effect, void* edx, void* material, int unused)
 	{
-		if (fix_71E06B::enabled && IsBadReadPtr(material, 4))
+		if (fix_71E06B::enabled && IsBadReadPtr(material, 0xEC))
 		{
 			fix_71E06B::bad_reads++;
 			return;

@@ -9,11 +9,11 @@ namespace movies
 		auto value = force.Get();
 
 		// Only psychopaths use mixed case here
-		if (!strcmp(value, "pal") || !strcmp(value, "PAL"))
+		if (!_stricmp(value, "PAL"))
 		{
 			Patch<uint16_t>(0x583BEF, 0x9090);
 		}
-		if (!strcmp(value, "ntsc") || !strcmp(value, "NTSC"))
+		if (!_stricmp(value, "NTSC"))
 		{
 			Patch<uint8_t>(0x583BEF, 0xEB);
 		}

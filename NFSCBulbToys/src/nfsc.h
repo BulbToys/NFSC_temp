@@ -512,6 +512,7 @@ namespace NFSC
 
 	FUNC(0x5A0250, uintptr_t, , FE_Object_FindObject, const char* package_name, uint32_t key);
 	FUNC(0x597900, void, , FE_Object_GetCenter, uintptr_t fe_object, float* x, float* y);
+	FUNC(0x570500, bool, , FE_Object_IsScriptSet, uintptr_t fe_object, unsigned int id);
 	FUNC(0x570CC0, void, , FE_Object_SetColor, uintptr_t fe_object, NFSC::FEColor* color);
 	FUNC(0x570460, void, , FE_Object_SetVisibility, uintptr_t fe_object, bool visible);
 
