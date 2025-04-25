@@ -17,7 +17,7 @@ namespace race_map
 		}
 	}
 
-	int GenerateFLM(float x_offs = 0, float y_offs = 0, int limit = INT_MAX)
+	int GenerateFLM(float x_offs = 0, float z_offs = 0, int limit = INT_MAX)
 	{
 		DestroyFLM();
 
@@ -110,6 +110,10 @@ namespace race_map
 
 					for (int j = 0; j < 4; j++)
 					{
+						// apply our own offsets
+						points[j].x += z_offs;
+						points[j].y -= x_offs;
+
 						points[j].x = (points[j].x - -7300.0f) * 0.000062500003f;
 						points[j].y = (-2000.0f - points[j].y) * 0.000062500003f + 1.0f;
 
@@ -126,10 +130,6 @@ namespace race_map
 							points[j].x -= 951.f;
 						//}
 						points[j].y -= 1411.f;
-
-						// apply our own offsets
-						points[j].x += x_offs;
-						points[j].y += y_offs;
 
 						points[j].x *= 1.27f;
 						points[j].y *= 1.27f;
@@ -220,9 +220,9 @@ namespace race_map
 				ImGui::Text("X offset:");
 				ImGui::SliderFloat("##FLMXOffset", &x_offs, -10000, +10000);
 
-				static float y_offs = .0f;
-				ImGui::Text("Y offset:");
-				ImGui::SliderFloat("##FLMYOffset", &y_offs, -10000, +10000);
+				static float z_offs = .0f;
+				ImGui::Text("Z offset:");
+				ImGui::SliderFloat("##FLMYOffset", &z_offs, -10000, +10000);
 
 				static int bezier_count = 0;
 				if (ImGui::Button("Generate FLM"))
@@ -231,11 +231,11 @@ namespace race_map
 
 					if (use_limit)
 					{
-						bezier_count = GenerateFLM(x_offs, y_offs, limit);
+						bezier_count = GenerateFLM(x_offs, z_offs, limit);
 					}
 					else
 					{
-						bezier_count = GenerateFLM(x_offs, y_offs);
+						bezier_count = GenerateFLM(x_offs, z_offs);
 					}
 
 					return false;
