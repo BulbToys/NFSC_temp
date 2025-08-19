@@ -76,6 +76,7 @@
     <ClCompile Include="src\modules\fix_71E06B.cpp" />
     <ClCompile Include="src\modules\frontend.cpp" />
     <ClCompile Include="src\modules\movies.cpp" />
+    <ClCompile Include="src\modules\no_pursuit_cancel.cpp" />
     <ClCompile Include="src\modules\photo_mode.cpp" />
     <ClCompile Include="src\modules\player_trail.cpp" />
     <ClCompile Include="src\modules\qr_customize.cpp" />

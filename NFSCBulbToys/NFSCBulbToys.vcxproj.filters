@@ -76,6 +76,7 @@
     <ClCompile Include="src\modules\sixth_sense.cpp" />
     <ClCompile Include="src\modules\state_managers.cpp" />
     <ClCompile Include="src\modules\testing.cpp" />
+    <ClCompile Include="src\modules\no_pursuit_cancel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
