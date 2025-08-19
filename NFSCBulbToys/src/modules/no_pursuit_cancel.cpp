@@ -101,8 +101,12 @@ namespace no_pursuit_cancel
 			char data[0x14]{ 0 };
 		} MEnterSafeHouse;
 
+		// MEnterSafeHouse::MEnterSafeHouse
 		auto message = reinterpret_cast<uintptr_t(__thiscall*)(void*, const char*)>(0x57A950)(&MEnterSafeHouse, "safehouse");
+
+		// Hermes::Message::Enqueue
 		reinterpret_cast<void(__thiscall*)(uintptr_t, unsigned int, int)>(0x566070)(message, 0x20D60DBF, 0);
+
 		fe_state_manager->exit_point = 0;
 
 		FEPostPursuitStateManager_HandlePadAccept(fesm);
