@@ -132,21 +132,9 @@ bool NFSC::BulbToys_GetMyVehicle(uintptr_t* my_vehicle, uintptr_t* my_simable)
 
 void NFSC::BulbToys_GetScreenPosition(Vector3& world, Vector3& screen)
 {
-	Vector4 out, input = { world.z, -world.x, world.y, 1.0 };
+	Vector3 input = { world.z, -world.x, world.y };
 
-	// ViewPlatInfoTable[EVIEW_PLAYER (1)].ViewProjectionMatrix
-	Matrix4 proj = Read<Matrix4>((0xB1A780 + 1 * 0x1A0) + 0x80);
-
-	// D3DXVec4Transform
-	reinterpret_cast<Vector4* (__stdcall*)(Vector4*, Vector4*, Matrix4*)>(0x86B29C)(&out, &input, &proj);
-
-	float i_w = 1.0f / out.w;
-	out.x *= i_w;
-	out.y *= i_w;
-
-	screen.x = (out.x + 1.0f) * Read<int>(0xAB0AC8) * 0.5f; // ResolutionX
-	screen.y = (out.y - 1.0f) * Read<int>(0xAB0ACC) * -0.5f; // ResolutionY
-	screen.z = i_w * out.z;
+	reinterpret_cast<void(__thiscall*)(uintptr_t, Vector3*, Vector3*)>(0x70F1F0)(0xB4AF90, &screen, &input);
 }
 
 void ImGui::NFSC_DistanceBar(float distance, float max_distance, float width, float height)
