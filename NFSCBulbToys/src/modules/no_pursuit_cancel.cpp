@@ -109,6 +109,15 @@ namespace no_pursuit_cancel
 
 		fe_state_manager->exit_point = 0;
 
+		// save alias if one is currently loaded (MemcardManager::IsProfileLoaded(EA::Memcard::MemcardManager::sInstance))
+		if (reinterpret_cast<bool(__thiscall*)(uintptr_t)>(0x58E710)(Read<uintptr_t>(0xA97BD0)))
+		{
+			// FEMemcardStateManager::CreateInstance
+			auto memcard_sm = reinterpret_cast<uintptr_t(__cdecl*)(uintptr_t, int)>(0x5B6FA0)(fesm, 0xD);
+			NFSC::FEStateManager_PushChildManager(fesm, memcard_sm, 2);
+			return;
+		}
+
 		FEPostPursuitStateManager_HandlePadAccept(fesm);
 	}
 
@@ -122,8 +131,9 @@ namespace no_pursuit_cancel
 
 		// if we're evading the pursuit by entering the safe house, do the following
 		auto fe_state_manager = reinterpret_cast<NFSC::FEStateManager*>(fesm);
-		if (fe_state_manager->current_state != 0)
+		if (fe_state_manager->current_state != 2)
 		{
+			// realistically, this could be an assert as well
 			FEPostPursuitStateManager_HandleFlowDone(fesm);
 			return;
 		}
