@@ -78,6 +78,7 @@
     <ClCompile Include="src\modules\testing.cpp" />
     <ClCompile Include="src\modules\no_pursuit_cancel.cpp" />
     <ClCompile Include="src\modules\qr_autosave.cpp" />
+    <ClCompile Include="src\modules\screenshot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
